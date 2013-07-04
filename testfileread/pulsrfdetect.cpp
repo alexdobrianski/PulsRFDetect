@@ -54,13 +54,18 @@ char                Subchunk2ID[4];
 int                 Subchunk2Size; 
 }wav_hdr; 
 
-
+int iNPulsars = 0;
+int ATNFcatalogN[5000];
+int J2000RAJ_hms[5000];
+int J2000DECJ_dms[5000];
+double TPeriod[5000];
 
 int main(int argc, char* argv[])
 {
     char szFileName[_MAX_PATH];
     char szFileName2[_MAX_PATH];
     char szFileName3[_MAX_PATH];
+    char PulasrLine[1024];
     short int *FiveSecData;
     int *FiveSecData32;
     char *FiveSecData8;
@@ -96,6 +101,38 @@ int main(int argc, char* argv[])
         strcpy(szFileName3,&argv[3][0]);
     }
     printf("files are: %s, %s %s", szFileName,szFileName2,szFileName3);
+
+    // read pulsar's parameters
+    FILE *pulsar = fopen("pulsar.txt","r");
+    if (pulsar)
+    {
+        while(fgets(PulasrLine, sizeof(PulasrLine),pulsar))
+        {
+            int LineNumber = atoi(PulasrLine);
+            if (LineNumber> 0)
+            {
+                ATNFcatalogN[iNPulsars] = LineNumber;
+                char *StrComm = strchr(PulasrLine,',');
+                if (StrComm)
+                {
+                    J2000RAJ_hms[iNPulsars] = atoi(StrComm+2);
+                    J2000DECJ_dms[iNPulsars] = atoi(StrComm+6);
+                    StrComm = strchr(StrComm+5,',');
+                    if (StrComm)
+                    {
+                        StrComm = strchr(StrComm+1,','); // that is a period of the pulsar
+                        if (StrComm)
+                        {
+                            TPeriod[iNPulsars++] = atof(StrComm+1);
+                        }
+                    }
+
+                }
+            }
+        }
+        fclose(pulsar);
+    }
+
     MAXCh = (double*)malloc(sizeof(double)*(iPeriod2-iPeriod));
     if (MAXCh == NULL)
     {
