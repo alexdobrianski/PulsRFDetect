@@ -80,7 +80,10 @@ int main(int argc, char* argv[])
     double ChMax;
     double Ch3;
     double *MAXCh;
+    double *PeriodVal;
 	double MAXlist[30];
+    long int Iteration;
+    long int *IterCounter;
 	int iMAXlist;
     iPeriod = atol(&argv[4][0]);
     iPeriod2 = atol(&argv[5][0]);
@@ -132,17 +135,31 @@ int main(int argc, char* argv[])
         }
         fclose(pulsar);
     }
+    //if (iNPulsars)
+    //{
+    //}
+    //else
+    {
 
-    MAXCh = (double*)malloc(sizeof(double)*(iPeriod2-iPeriod));
-    if (MAXCh == NULL)
-    {
-        printf("\n period= %d and period2= %d are wrong",iPeriod2, iPeriod);
+        MAXCh = (double*)malloc(sizeof(double)*(iPeriod2-iPeriod));
+        PeriodVal = (double*)malloc(sizeof(double)*(iPeriod2-iPeriod));
+        IterCounter = (long int*)malloc(sizeof(long int)*(iPeriod2-iPeriod));
+        if (MAXCh == NULL || PeriodVal == NULL || IterCounter == NULL)
+        {
+            printf("\n period= %d and period2= %d are wrong",iPeriod2, iPeriod);
+            return;
+        }
+        for (int m= 0; m < (iPeriod2-iPeriod); m++)
+        {
+            MAXCh[m] = 0.0;
+            PeriodVal[m] = (double)m/(double)iPeriodSec;
+            IterCounter[m] = iPeriod + m;
+        }
+        Iteration = iPeriod2-iPeriod;
     }
-    for (int m= 0; m < (iPeriod2-iPeriod); m++)
-    {
-        MAXCh[m] = 0.0;
-    }
-    for (long int k= iPeriod; k < iPeriod2; k++)
+
+    //for (long int k= iPeriod; k < iPeriod2; k++)
+    for (long int k= 0; k < Iteration; k++)
     {
         iCount = 0;
         FILE * FileData = fopen(szFileName,"rb");
@@ -153,7 +170,8 @@ int main(int argc, char* argv[])
             if (FileDataOut != NULL)
             {
                 fwrite(&wavHeader,sizeof(wavHeader),1,FileDataOut);
-                int iBufferSize = ((double)wavHeader.bytesPerSec*(double)k)/(double)iPeriodSec;
+                //int iBufferSize = ((double)wavHeader.bytesPerSec*(double)k)/(double)iPeriodSec;
+                int iBufferSize = (double)wavHeader.bytesPerSec*PeriodVal[k];
                 //if ((iBufferSize % 2) == 1)
                 //iBufferSize+=(iBufferSize % 4);
                 int iSampleSize = iBufferSize/(wavHeader.bitsPerSample/8)/ wavHeader.NumOfChan; // tow channels mean ammount of samples is twice smaller
@@ -251,8 +269,9 @@ int main(int argc, char* argv[])
                         {
                             Ch3 += (Ch1[i]-Ch2)*(Ch1[i]-Ch2);
                         }
-                        printf("\n%ld = %018g c= %05d d=%018g o=%018g", k, Ch2, iCount, Ch3/iSampleSize, sqrt(Ch3/iSampleSize));
-                        MAXCh[k-iPeriod] = sqrt(Ch3/iSampleSize);
+                        printf("\n%ld = %018g c= %05d d=%018g o=%018g", IterCounter[k], Ch2, iCount, Ch3/iSampleSize, sqrt(Ch3/iSampleSize));
+
+                        MAXCh[k] = sqrt(Ch3/iSampleSize);
                     }
                     if ((iPeriod2-iPeriod) == 1)
                     {
