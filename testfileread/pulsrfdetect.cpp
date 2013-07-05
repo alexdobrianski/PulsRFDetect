@@ -81,13 +81,88 @@ int main(int argc, char* argv[])
     double Ch3;
     double *MAXCh;
     double *PeriodVal;
-	double MAXlist[30];
+	double MAXlist[300];
     long int Iteration;
     long int *IterCounter;
 	int iMAXlist;
-    iPeriod = atol(&argv[4][0]);
-    iPeriod2 = atol(&argv[5][0]);
-    iPeriodSec = atol(&argv[6][0]);
+	if (argc == 7)
+	{
+	    iPeriod = atol(&argv[4][0]);
+        iPeriod2 = atol(&argv[5][0]);
+        iPeriodSec = atol(&argv[6][0]);
+        MAXCh = (double*)malloc(sizeof(double)*(iPeriod2-iPeriod));
+        PeriodVal = (double*)malloc(sizeof(double)*(iPeriod2-iPeriod));
+        IterCounter = (long int*)malloc(sizeof(long int)*(iPeriod2-iPeriod));
+        if (MAXCh == NULL || PeriodVal == NULL || IterCounter == NULL)
+        {
+            printf("\n period= %d and period2= %d are wrong",iPeriod2, iPeriod);
+            return 2;
+        }
+        for (int m= 0; m < (iPeriod2-iPeriod); m++)
+        {
+            MAXCh[m] = 0.0;
+            PeriodVal[m] = (double)(m+iPeriod)/(double)iPeriodSec;
+            IterCounter[m] = iPeriod + m;
+        }
+        Iteration = iPeriod2-iPeriod;
+    }
+    else
+    {
+        // read pulsar's parameters
+        FILE *pulsar = fopen("pulsar.txt","r");
+        if (pulsar)
+        {
+            while(fgets(PulasrLine, sizeof(PulasrLine),pulsar))
+            {
+                int LineNumber = atoi(PulasrLine);
+                if (LineNumber> 0)
+                {
+                    ATNFcatalogN[iNPulsars] = LineNumber;
+                    char *StrComm = strchr(PulasrLine,',');
+                    if (StrComm)
+                    {
+                        J2000RAJ_hms[iNPulsars] = atoi(StrComm+2);
+                        J2000DECJ_dms[iNPulsars] = atoi(StrComm+6);
+                        StrComm = strchr(StrComm+5,',');
+                        if (StrComm)
+                        {
+                            StrComm = strchr(StrComm+1,','); // that is a period of the pulsar
+                            if (StrComm)
+                            {
+                                if (atof(StrComm+1) < 1.0)
+                                    TPeriod[iNPulsars++] = atof(StrComm+1);
+                            }
+                        }
+
+                    }
+                }
+            }
+            fclose(pulsar);
+        }
+        if (iNPulsars)
+        {
+            MAXCh = (double*)malloc(sizeof(double)*(iNPulsars));
+            PeriodVal = (double*)malloc(sizeof(double)*(iNPulsars));
+            IterCounter = (long int*)malloc(sizeof(long int)*(iNPulsars));
+            if (MAXCh == NULL || PeriodVal == NULL || IterCounter == NULL)
+            {
+                printf("\n period= %d and period2= %d are wrong",iPeriod2, iPeriod);
+                return 2;
+            }
+            for (int m= 0; m < iNPulsars; m++)
+            {
+                MAXCh[m] = 0.0;
+                PeriodVal[m] = TPeriod[m];
+                IterCounter[m] =  ATNFcatalogN[m];
+            }
+            Iteration = iNPulsars;
+        }
+        else
+        {
+              printf("\n error in pulsar file read");
+              return 3;
+        }
+    }
     strcpy(szFileName, &argv[0][0]);
     strcpy(szFileName2, &argv[0][0]);
     strcpy(szFileName3, &argv[0][0]);
@@ -105,57 +180,14 @@ int main(int argc, char* argv[])
     }
     printf("files are: %s, %s %s", szFileName,szFileName2,szFileName3);
 
-    // read pulsar's parameters
-    FILE *pulsar = fopen("pulsar.txt","r");
-    if (pulsar)
-    {
-        while(fgets(PulasrLine, sizeof(PulasrLine),pulsar))
-        {
-            int LineNumber = atoi(PulasrLine);
-            if (LineNumber> 0)
-            {
-                ATNFcatalogN[iNPulsars] = LineNumber;
-                char *StrComm = strchr(PulasrLine,',');
-                if (StrComm)
-                {
-                    J2000RAJ_hms[iNPulsars] = atoi(StrComm+2);
-                    J2000DECJ_dms[iNPulsars] = atoi(StrComm+6);
-                    StrComm = strchr(StrComm+5,',');
-                    if (StrComm)
-                    {
-                        StrComm = strchr(StrComm+1,','); // that is a period of the pulsar
-                        if (StrComm)
-                        {
-                            TPeriod[iNPulsars++] = atof(StrComm+1);
-                        }
-                    }
-
-                }
-            }
-        }
-        fclose(pulsar);
-    }
+    
     //if (iNPulsars)
     //{
     //}
     //else
     {
 
-        MAXCh = (double*)malloc(sizeof(double)*(iPeriod2-iPeriod));
-        PeriodVal = (double*)malloc(sizeof(double)*(iPeriod2-iPeriod));
-        IterCounter = (long int*)malloc(sizeof(long int)*(iPeriod2-iPeriod));
-        if (MAXCh == NULL || PeriodVal == NULL || IterCounter == NULL)
-        {
-            printf("\n period= %d and period2= %d are wrong",iPeriod2, iPeriod);
-            return;
-        }
-        for (int m= 0; m < (iPeriod2-iPeriod); m++)
-        {
-            MAXCh[m] = 0.0;
-            PeriodVal[m] = (double)m/(double)iPeriodSec;
-            IterCounter[m] = iPeriod + m;
-        }
-        Iteration = iPeriod2-iPeriod;
+        
     }
 
     //for (long int k= iPeriod; k < iPeriod2; k++)
@@ -174,7 +206,7 @@ int main(int argc, char* argv[])
                 int iBufferSize = (double)wavHeader.bytesPerSec*PeriodVal[k];
                 //if ((iBufferSize % 2) == 1)
                 //iBufferSize+=(iBufferSize % 4);
-                int iSampleSize = iBufferSize/(wavHeader.bitsPerSample/8)/ wavHeader.NumOfChan; // tow channels mean ammount of samples is twice smaller
+                int iSampleSize = iBufferSize/(wavHeader.bitsPerSample/8)/ wavHeader.NumOfChan; // two channels mean ammount of samples is twice smaller
                 iBufferSize = iSampleSize * wavHeader.NumOfChan * (wavHeader.bitsPerSample/8);
                 FiveSecData = (short int *)malloc(iBufferSize);
                 Ch1 = (double*)malloc(sizeof(double)*iSampleSize);
@@ -192,6 +224,8 @@ int main(int argc, char* argv[])
                         int iSize = iBufferSize;
                         if (wavHeader.Subchunk2Size < iSize)
                             iSize = wavHeader.Subchunk2Size;
+                        if (iSize == 0)
+                            break;
                         fread(FiveSecData,iSize,1,FileData);
                         for (int i= 0; i < iSampleSize ; i++)
                         {
@@ -269,15 +303,16 @@ int main(int argc, char* argv[])
                         {
                             Ch3 += (Ch1[i]-Ch2)*(Ch1[i]-Ch2);
                         }
-                        printf("\n%ld = %018g c= %05d d=%018g o=%018g", IterCounter[k], Ch2, iCount, Ch3/iSampleSize, sqrt(Ch3/iSampleSize));
+                        printf("\n%#11.7g = %018g c= %05d o=%018g", PeriodVal[k], Ch2, iCount/*, Ch3/iSampleSize*/, sqrt(Ch3/iSampleSize));
 
                         MAXCh[k] = sqrt(Ch3/iSampleSize);
                     }
-                    if ((iPeriod2-iPeriod) == 1)
+                    if (Iteration == 1)
                     {
                         memset(bRGBImage, 0xff, sizeof(bRGBImage));
-						double CoefSec = ((double)IMAGE_W)/(double)iSampleSize
-							       * ((double)k)/(double)iPeriodSec;
+						//double CoefSec = ((double)IMAGE_W)/(double)iSampleSize
+						//	       * ((double)k)/(double)iPeriodSec;
+						double CoefSec = ((double)IMAGE_W)/(double)iSampleSize * PeriodVal[k];
 						
                         for (int i = 0; i < IMAGE_H;i++)
 						{
@@ -308,7 +343,7 @@ int main(int argc, char* argv[])
             printf("\nfile 1 =%s can not be opened",szFileName);
     }
 	int istarts = 0;
-	if ((iPeriod2-iPeriod) == 1)
+	if ((Iteration) == 1)
 		return 0;
 
 	FILE * FileDataBatch = fopen("afterrun.bat","wb");
@@ -333,7 +368,7 @@ int main(int argc, char* argv[])
 			continue;
 		}
 
-		for (int m= imax+1; m < (iPeriod2-iPeriod); m++)
+		for (int m= imax+1; m < Iteration; m++)
 		{
 			if (MaxVal < MAXCh[m])
 			{
@@ -353,13 +388,21 @@ int main(int argc, char* argv[])
 				}
 			}
 		}
-		printf("\n Max at = %d == %018g",iPeriod+imax,MaxVal);
+        
+		printf("\n Max at = %#011.7G (%d)== %018g",PeriodVal[imax],IterCounter[imax],MaxVal);
 		MAXlist[ilist] = MaxVal;
 		if (FileDataBatch)
 		{
-			fprintf(FileDataBatch,"\npulsRFdetect.exe %s %s %s %d %d %d",&argv[1][0],&argv[2][0],&argv[3][0],
-				iPeriod+imax, iPeriod+imax+1, iPeriodSec);
-			fprintf(FileDataBatch,"\ncopy img.jpg %d%s.jpg",iPeriod+imax,&argv[1][0]);
+            long int iDec=1000000;
+            if (iPeriodSec)
+                iDec = iPeriodSec;
+            long int i1 = PeriodVal[imax] * (double)iDec;
+
+			fprintf(FileDataBatch,"\npulsRFdetect.exe %s %s %s %ld %ld %ld",&argv[1][0],&argv[2][0],&argv[3][0],
+				//IterCounter[imax], IterCounter[imax+1], iPeriodSec);
+                i1, i1+1, iDec);
+            //fprintf(FileDataBatch,"\ncopy img.jpg %s%#011.7G.jpg",&argv[1][0],PeriodVal[imax]);
+            fprintf(FileDataBatch,"\ncopy img.jpg %s%d.jpg",&argv[1][0],IterCounter[imax]);
 		}
     }
 	if (FileDataBatch)
