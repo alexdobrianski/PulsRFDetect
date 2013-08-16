@@ -1,5 +1,19 @@
-// testfileread.cpp : Defines the entry point for the console application.
-//
+/*****************************************************************************
+    2013 (C) Alex Dobrianski pulsar pattern recognition software
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>
+    Design and development by Team "Plan B" is licensed under 
+    a Creative Commons Attribution-ShareAlike 3.0 Unported License.
+    http://creativecommons.org/licenses/by-sa/3.0/ 
+******************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -58,152 +72,39 @@ int iNPulsars = 0;
 int ATNFcatalogN[5000];
 int J2000RAJ_hms[5000];
 int J2000DECJ_dms[5000];
-double TPeriod[5000];
+double dPulsarCycle[5000];
 
-int main(int argc, char* argv[])
+
+void AnalizePattern(long int Iteration,
+                   char *szFileData,
+                   char *szFileCheck1Ch,
+                   char *szFileDataRes,
+                   double *dTCycle,
+                   double *MAXCh
+                  )
 {
-    char szFileName[_MAX_PATH];
-    char szFileName2[_MAX_PATH];
-    char szFileName3[_MAX_PATH];
-    char PulasrLine[1024];
-    short int *FiveSecData;
-    int *FiveSecData32;
-    char *FiveSecData8;
-    long int iPeriodSec = 10000;
-    long int iPeriod = 50000;
-    long int iPeriod2 = 50000;
     long int iCount = 0;
     wav_hdr wavHeader;
+    short int *FiveSecData;
     double *Ch1;
+    int *FiveSecData32;
+    char *FiveSecData8;
     double Ch2;
     double ChMin;
     double ChMax;
     double Ch3;
-    double *MAXCh;
-    double *PeriodVal;
-	double MAXlist[300];
-    long int Iteration;
-    long int *IterCounter;
-	int iMAXlist;
-	if (argc == 7)
-	{
-	    iPeriod = atol(&argv[4][0]);
-        iPeriod2 = atol(&argv[5][0]);
-        iPeriodSec = atol(&argv[6][0]);
-        MAXCh = (double*)malloc(sizeof(double)*(iPeriod2-iPeriod));
-        PeriodVal = (double*)malloc(sizeof(double)*(iPeriod2-iPeriod));
-        IterCounter = (long int*)malloc(sizeof(long int)*(iPeriod2-iPeriod));
-        if (MAXCh == NULL || PeriodVal == NULL || IterCounter == NULL)
-        {
-            printf("\n period= %d and period2= %d are wrong",iPeriod2, iPeriod);
-            return 2;
-        }
-        for (int m= 0; m < (iPeriod2-iPeriod); m++)
-        {
-            MAXCh[m] = 0.0;
-            PeriodVal[m] = (double)(m+iPeriod)/(double)iPeriodSec;
-            IterCounter[m] = iPeriod + m;
-        }
-        Iteration = iPeriod2-iPeriod;
-    }
-    else
-    {
-        // read pulsar's parameters
-        FILE *pulsar = fopen("pulsar.txt","r");
-        if (pulsar)
-        {
-            while(fgets(PulasrLine, sizeof(PulasrLine),pulsar))
-            {
-                int LineNumber = atoi(PulasrLine);
-                if (LineNumber> 0)
-                {
-                    ATNFcatalogN[iNPulsars] = LineNumber;
-                    char *StrComm = strchr(PulasrLine,',');
-                    if (StrComm)
-                    {
-                        J2000RAJ_hms[iNPulsars] = atoi(StrComm+2);
-                        J2000DECJ_dms[iNPulsars] = atoi(StrComm+6);
-                        StrComm = strchr(StrComm+5,',');
-                        if (StrComm)
-                        {
-                            StrComm = strchr(StrComm+1,','); // that is a period of the pulsar
-                            if (StrComm)
-                            {
-                                if (atof(StrComm+1) < 1.0)
-                                    TPeriod[iNPulsars++] = atof(StrComm+1);
-                            }
-                        }
-
-                    }
-                }
-            }
-            fclose(pulsar);
-        }
-        if (iNPulsars)
-        {
-            MAXCh = (double*)malloc(sizeof(double)*(iNPulsars));
-            PeriodVal = (double*)malloc(sizeof(double)*(iNPulsars));
-            IterCounter = (long int*)malloc(sizeof(long int)*(iNPulsars));
-            if (MAXCh == NULL || PeriodVal == NULL || IterCounter == NULL)
-            {
-                printf("\n period= %d and period2= %d are wrong",iPeriod2, iPeriod);
-                return 2;
-            }
-            for (int m= 0; m < iNPulsars; m++)
-            {
-                MAXCh[m] = 0.0;
-                PeriodVal[m] = TPeriod[m];
-                IterCounter[m] =  ATNFcatalogN[m];
-            }
-            Iteration = iNPulsars;
-        }
-        else
-        {
-              printf("\n error in pulsar file read");
-              return 3;
-        }
-    }
-    strcpy(szFileName, &argv[0][0]);
-    strcpy(szFileName2, &argv[0][0]);
-    strcpy(szFileName3, &argv[0][0]);
-    if (strrchr(szFileName,'\\') != NULL)
-    {
-        strcpy(strrchr(szFileName,'\\')+1,&argv[1][0]);
-        strcpy(strrchr(szFileName2,'\\')+1,&argv[2][0]);
-        strcpy(strrchr(szFileName3,'\\')+1,&argv[3][0]);
-    }
-    else
-    {
-        strcpy(szFileName,&argv[1][0]);
-        strcpy(szFileName2,&argv[2][0]);
-        strcpy(szFileName3,&argv[3][0]);
-    }
-    printf("files are: %s, %s %s", szFileName,szFileName2,szFileName3);
-
-    
-    //if (iNPulsars)
-    //{
-    //}
-    //else
-    {
-
-        
-    }
-
-    //for (long int k= iPeriod; k < iPeriod2; k++)
     for (long int k= 0; k < Iteration; k++)
     {
         iCount = 0;
-        FILE * FileData = fopen(szFileName,"rb");
+        FILE * FileData = fopen(szFileData,"rb");
         if (FileData)
         {
             fread(&wavHeader,sizeof(wavHeader),1,FileData);
-            FILE * FileDataOut = fopen(szFileName2,"wb");
-            if (FileDataOut != NULL)
+            FILE * FileCheck1Ch = fopen(szFileCheck1Ch,"wb");
+            if (FileCheck1Ch != NULL)
             {
-                fwrite(&wavHeader,sizeof(wavHeader),1,FileDataOut);
-                //int iBufferSize = ((double)wavHeader.bytesPerSec*(double)k)/(double)iPeriodSec;
-                int iBufferSize = (double)wavHeader.bytesPerSec*PeriodVal[k];
+                fwrite(&wavHeader,sizeof(wavHeader),1,FileCheck1Ch);
+                int iBufferSize = (double)wavHeader.bytesPerSec*dTCycle[k];
                 //if ((iBufferSize % 2) == 1)
                 //iBufferSize+=(iBufferSize % 4);
                 int iSampleSize = iBufferSize/(wavHeader.bitsPerSample/8)/ wavHeader.NumOfChan; // two channels mean ammount of samples is twice smaller
@@ -253,11 +154,11 @@ int main(int argc, char* argv[])
                                 break;
                             }
                         }
-                        fwrite(FiveSecData,iSize,1,FileDataOut);
+                        fwrite(FiveSecData,iSize,1,FileCheck1Ch);
                         wavHeader.Subchunk2Size-= iSize;
                         iCount++;
                     }
-                    FILE * FileDataRes = fopen(szFileName3,"wb");
+                    FILE * FileDataRes = fopen(szFileDataRes,"wb");
                     if (FileDataRes != NULL)
                     {
                         Ch2 = 0;
@@ -303,17 +204,18 @@ int main(int argc, char* argv[])
                         {
                             Ch3 += (Ch1[i]-Ch2)*(Ch1[i]-Ch2);
                         }
-                        printf("\n%#11.7g = %018g c= %05d o=%018g", PeriodVal[k], Ch2, iCount/*, Ch3/iSampleSize*/, sqrt(Ch3/iSampleSize));
+                        printf("\n%#11.7g = %018g c= %05d o=%018g", dTCycle, Ch2, iCount/*, Ch3/iSampleSize*/, sqrt(Ch3/iSampleSize));
 
                         MAXCh[k] = sqrt(Ch3/iSampleSize);
                     }
+                    // if it is just one period == needs to draw the plot as img.jpg file
                     if (Iteration == 1)
                     {
                         memset(bRGBImage, 0xff, sizeof(bRGBImage));
 						//double CoefSec = ((double)IMAGE_W)/(double)iSampleSize
-						//	       * ((double)k)/(double)iPeriodSec;
-						double CoefSec = ((double)IMAGE_W)/(double)iSampleSize * PeriodVal[k];
-						
+						//	       * ((double)k)/(double)iSecDuration;
+						double CoefSec = ((double)IMAGE_W)/(double)iSampleSize * dTCycle[k];
+						// draw vertical lines
                         for (int i = 0; i < IMAGE_H;i++)
 						{
 							for(int j=0;j <10;j++)
@@ -322,6 +224,7 @@ int main(int argc, char* argv[])
 								
 							}
 						}
+                        // draw plot
 						for (int i= 0; i < iSampleSize ; i++)
                         {
                             int X = ((double)i)*CoefSec;
@@ -335,13 +238,169 @@ int main(int argc, char* argv[])
                     free(FiveSecData);FiveSecData= NULL;
                     free(Ch1);Ch1=NULL;
                 }
-                fclose(FileDataOut);
+                fclose(FileCheck1Ch);
             }
             fclose(FileData);
         }
         else
-            printf("\nfile 1 =%s can not be opened",szFileName);
+            printf("\nfile 1 =%s can not be opened",szFileData);
     }
+}
+
+int main(int argc, char* argv[])
+{
+    char szFileData[_MAX_PATH];
+    char szFileCheck1Ch[_MAX_PATH];
+    char szFileDataRes[_MAX_PATH];
+    char PulasrLine[1024];
+    short int *FiveSecData;
+    int *FiveSecData32;
+    char *FiveSecData8;
+    long int iSecDuration = 10000;
+    long int iFromTCycle = 50000;
+    long int iToTCycle = 50000;
+    long int iCount = 0;
+    wav_hdr wavHeader;
+    double *Ch1;
+    double Ch2;
+    double ChMin;
+    double ChMax;
+    double Ch3;
+    double *MAXCh;
+    double *dTCycle;
+	double MAXlist[300];
+    long int Iteration;
+    long int *IterCounter;
+	int iMAXlist;
+	if (argc == 7) // <source wav file> <one ch only wav> <out wav len=period> 9000 11000 10000
+	{
+	    iFromTCycle = atol(&argv[4][0]);      //from period i.e.  9000 msk (or  9000000)
+        iToTCycle = atol(&argv[5][0]);     // to  period i.e. 11000 msk (or 11000000)
+        iSecDuration = atol(&argv[6][0]);   //  1 sec      ==  10000 msk (or 10000000)
+
+        MAXCh = (double*)malloc(sizeof(double)*(iToTCycle-iFromTCycle));
+        dTCycle = (double*)malloc(sizeof(double)*(iToTCycle-iFromTCycle));
+        IterCounter = (long int*)malloc(sizeof(long int)*(iToTCycle-iFromTCycle));
+        if (MAXCh == NULL || dTCycle == NULL || IterCounter == NULL)
+        {
+            printf("\n period= %d and period2= %d are wrong",iToTCycle, iFromTCycle);
+            return 2;
+        }
+        for (int m= 0; m < (iToTCycle-iFromTCycle); m++)
+        {
+            MAXCh[m] = 0.0;
+            dTCycle[m] = (double)(m+iFromTCycle)/(double)iSecDuration;
+            IterCounter[m] = iFromTCycle + m;
+        }
+        Iteration = iToTCycle-iFromTCycle;
+    }
+    else
+    {
+        if ((argc == 1) || ((argc == 2) && (argv[1][1] == '?')))
+        {
+
+            printf("\n Pulsar pattern detection utility");
+            printf("\n    Design and development by Team PlanB is licensed under"); 
+            printf("\n    a Creative Commons Attribution-ShareAlike 3.0 Unported License.");
+            printf("\n usage:");
+            printf("\n  PulsRFdetect <source file> <out check> <pattern.wav> <from> <to> <1 sec>      ");
+            printf("\n   where:");
+            printf("\n    <source file>- source wav file captured from two separate channels of ");
+            printf("\n                   two radio reseptors");
+            printf("\n    <out check>  - output check file with one channel");
+            printf("\n    <pattern.wav>- output pattern len = period");
+            printf("\n    <from>       - number representing starting period");
+            printf("\n    <to>         - number representing end testing period");
+            printf("\n    <1 sec>      - number representing 1 second");
+            
+            printf("\n  PulsRFdetect <source file> <out check> <pattern.wav>");
+            printf("\n   compare periods against pulsar.txt with real pulsar periods"); 
+            return 0;
+        }
+
+        // read pulsar's parameters
+        FILE *pulsar = fopen("pulsar.txt","r");
+        if (pulsar)
+        {
+            while(fgets(PulasrLine, sizeof(PulasrLine),pulsar))
+            {
+                int LineNumber = atoi(PulasrLine);
+                if (LineNumber> 0)
+                {
+                    ATNFcatalogN[iNPulsars] = LineNumber;
+                    char *StrComm = strchr(PulasrLine,',');
+                    if (StrComm)
+                    {
+                        J2000RAJ_hms[iNPulsars] = atoi(StrComm+2);
+                        J2000DECJ_dms[iNPulsars] = atoi(StrComm+6);
+                        StrComm = strchr(StrComm+5,',');
+                        if (StrComm)
+                        {
+                            StrComm = strchr(StrComm+1,','); // that is a period of the pulsar
+                            if (StrComm)
+                            {
+                                if (atof(StrComm+1) < 1.0)
+                                    dPulsarCycle[iNPulsars++] = atof(StrComm+1);
+                            }
+                        }
+
+                    }
+                }
+            }
+            fclose(pulsar);
+        }
+        if (iNPulsars)
+        {
+            MAXCh = (double*)malloc(sizeof(double)*(iNPulsars));
+            dTCycle = (double*)malloc(sizeof(double)*(iNPulsars));
+            IterCounter = (long int*)malloc(sizeof(long int)*(iNPulsars));
+            if (MAXCh == NULL || dTCycle == NULL || IterCounter == NULL)
+            {
+                printf("\n period= %d and period2= %d are wrong",iToTCycle, iFromTCycle);
+                return 2;
+            }
+            for (int m= 0; m < iNPulsars; m++)
+            {
+                MAXCh[m] = 0.0;
+                dTCycle[m] = dPulsarCycle[m];
+                IterCounter[m] =  ATNFcatalogN[m];
+            }
+            Iteration = iNPulsars;
+        }
+        else
+        {
+              printf("\n error in pulsar file read");
+              return 3;
+        }
+    }
+    strcpy(szFileData, &argv[0][0]);
+    strcpy(szFileCheck1Ch, &argv[0][0]);
+    strcpy(szFileDataRes, &argv[0][0]);
+    if (strrchr(szFileData,'\\') != NULL)
+    {
+        strcpy(strrchr(szFileData,'\\')+1,&argv[1][0]);
+        strcpy(strrchr(szFileCheck1Ch,'\\')+1,&argv[2][0]);
+        strcpy(strrchr(szFileDataRes,'\\')+1,&argv[3][0]);
+    }
+    else
+    {
+        strcpy(szFileData,&argv[1][0]);
+        strcpy(szFileCheck1Ch,&argv[2][0]);
+        strcpy(szFileDataRes,&argv[3][0]);
+    }
+    printf("files are: %s, %s %s", szFileData,szFileCheck1Ch,szFileDataRes);
+
+    
+    //if (iNPulsars)
+    //{
+    //}
+    //else
+    {
+
+        
+    }
+    AnalizePattern(Iteration, szFileData, szFileCheck1Ch, szFileDataRes, dTCycle, MAXCh );
+    
 	int istarts = 0;
 	if ((Iteration) == 1)
 		return 0;
@@ -389,19 +448,19 @@ int main(int argc, char* argv[])
 			}
 		}
         
-		printf("\n Max at = %#011.7G (%d)== %018g",PeriodVal[imax],IterCounter[imax],MaxVal);
+		printf("\n Max at = %#011.7G (%d)== %018g",dTCycle[imax],IterCounter[imax],MaxVal);
 		MAXlist[ilist] = MaxVal;
 		if (FileDataBatch)
 		{
             long int iDec=1000000;
-            if (iPeriodSec)
-                iDec = iPeriodSec;
-            long int i1 = PeriodVal[imax] * (double)iDec;
+            if (iSecDuration)
+                iDec = iSecDuration;
+            long int i1 = dTCycle[imax] * (double)iDec;
 
 			fprintf(FileDataBatch,"\npulsRFdetect.exe %s %s %s %ld %ld %ld",&argv[1][0],&argv[2][0],&argv[3][0],
-				//IterCounter[imax], IterCounter[imax+1], iPeriodSec);
+				//IterCounter[imax], IterCounter[imax+1], iSecDuration);
                 i1, i1+1, iDec);
-            //fprintf(FileDataBatch,"\ncopy img.jpg %s%#011.7G.jpg",&argv[1][0],PeriodVal[imax]);
+            //fprintf(FileDataBatch,"\ncopy img.jpg %s%#011.7G.jpg",&argv[1][0],dTCycle[imax]);
             fprintf(FileDataBatch,"\ncopy img.jpg %s%d.jpg",&argv[1][0],IterCounter[imax]);
 		}
     }
