@@ -306,15 +306,23 @@ int main(int argc, char* argv[])
             printf("\n  PulsRFdetect <source file> <out check> <pattern.wav> <from> <to> <1 sec>      ");
             printf("\n   where:");
             printf("\n    <source file>- source wav file captured from two separate channels of ");
-            printf("\n                   two radio reseptors");
+            printf("\n                   two radio recivers");
+            printf("\n    <source file>=audio:capture_speed capture audio directly with desired speed up to 1MHz");
             printf("\n    <out check>  - output check file with one channel");
-            printf("\n    <pattern.wav>- output pattern len = period");
+            printf("\n    <out check>=<http://post.com/  - post results");
+            printf("\n         <http://post.com/raw.jpg  - just raw reciving data");
+            printf("\n         <http://post.com/patternsNNNNNN.jpg  - pattern detection with NNNNNN milliseconds period");
+            printf("\n    <TRA.XML>- all pulsars patterns are in TRA.XML file");
+            printf("\n         <http://post.com/TRA.XML>- all pulsars patterns are in TRA.XML file generate by post.com");
             printf("\n    <from>       - number representing starting period");
             printf("\n    <to>         - number representing end testing period");
             printf("\n    <1 sec>      - number representing 1 second");
             
             printf("\n  PulsRFdetect <source file> <out check> <pattern.wav>");
             printf("\n   compare periods against pulsar.txt with real pulsar periods"); 
+
+            printf("\n  PulsRFdetect audio:1000000 http://post.com/ http://post.com/tra.xml");
+            printf("\n   capture 1MHz digitized pulsar reciever signal and try to detect periods from TRA.XML "); 
             return 0;
         }
 

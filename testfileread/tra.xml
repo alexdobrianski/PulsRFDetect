@@ -1,0 +1,1373 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<data version="1.00" xmlns:TRA="http://www.adobri.com/tra">
+<TRA:section name="ModeInfo" value="0.0">
+<!-- char [] Mode
+                          //    PROP == (default) proparation of the orbit
+                          //    SIM ==  simulation of the data from satellite
+                          //    CALC == calculation of the orbit based on any of the data : PING, GPS, PULSAR 
+                          //    CALC_ON_EARTH == calculation of the position on the earth based on GPS, PULSAR 
+                          //    CALC_ON_ON_MOON == calculation of the position on the moon based on PULSAR 
+                          //    OPTIM = calculation of the engines firing to reach the moon
+                          //    MASSPOINTS = calculation Mass Pint model of the graviatation
+               -->
+    <TRA:setting name="Mode" value="SIM" />
+
+</TRA:section>
+<TRA:section name="MassInfo" value="0.0">
+    <TRA:setting name="ModelOutput" value="mass_points.txt" />
+    <TRA:setting name="MinH" value="200000" />
+    <TRA:setting name="MaxH" value="500000" />
+    <TRA:setting name="MidRandPointsFile" value="RandomPoints.txt" />
+
+</TRA:section>
+
+<TRA:section name="SimInfo" value="0.0">
+    <TRA:setting name="@SimulationType" value="PULASR" />
+    <TRA:setting name="SimulationType" value="PULSAR" />
+    <TRA:setting name="SimNAME" value="EARTH" />
+    <TRA:setting name="@SimNAME" value="MOON" />
+    <TRA:setting name="@SimNAME" value="ORBIT" />
+    <TRA:setting name="SimLat" value="49.257735" />
+    <TRA:setting name="SimLong" value="-123.123904" />
+    <TRA:setting name="SimH" value="+30.5" />
+
+    <TRA:setting name="SimulationOutputTime" value="07/05/14 08:28:00:000" />
+    <TRA:setting name="SimulationOutputTime" value="07/05/14 10:00:52:000" />
+    <TRA:setting name="SimulationOutputTime" value="07/05/14 11:33:44:000" />
+    <TRA:setting name="SimulationOutputTime" value="07/05/14 14:39:28:000" />
+    <TRA:setting name="SimulationOutputTime" value="07/05/14 16:12:20:000" />
+    <TRA:setting name="SimulationOutputTime" value="07/05/14 17:45:12:000" />
+    <TRA:setting name="SimulationOutputTime" value="07/05/14 19:18:04:000" />
+    <TRA:setting name="SimulationOutputTime" value="07/05/14 20:50:56:000" />
+    <TRA:setting name="SimulationOutputTime" value="07/05/14 22:23:48:000" />
+    <TRA:setting name="SimulationOutputTime" value="07/05/14 23:56:41:000" />
+    <TRA:setting name="SimulationOutputTime" value="08/05/14 01:29:33:000" />
+    <TRA:setting name="SimulationOutputTime" value="08/05/14 03:02:25:000" />
+    <TRA:setting name="SimulationOutputTime" value="08/05/14 04:35:17:000" />
+    <TRA:setting name="SimulationOutputTime" value="08/05/14 06:08:09:000" />
+    <TRA:setting name="SimulationOutputTime" value="08/05/14 07:41:01:000" />
+    <TRA:setting name="SimulationOutputTime" value="08/05/14 09:13:53:000" />
+    <TRA:setting name="SimulationOutputTime" value="15/05/14 09:13:53:000" />
+</TRA:section>
+
+
+<TRA:section name="CalcInfo" value="0.0">
+	<TRA:setting name="CalcinfoFile" value="pulsarsoutput.xml" />
+</TRA:section>
+
+
+<TRA:section name="probs" value="0.0">
+    <TRA:setting name="ProbM" value="67.5" />
+    <TRA:setting name="ProbKeplerLine1" value="0 ISS (ZARYA)" />
+    <TRA:setting name="ProbSquare" value="0" />
+    <TRA:setting name="@ProbDX" value="-479.048294067383" />
+    <TRA:setting name="@ProbDY" value="106.834991455078" />
+    <TRA:setting name="@ProbDZ" value="94.367050170898" />
+
+    <TRA:setting name="@ProbDVX" value="0.000240058927" />
+    <TRA:setting name="@ProbDVY" value="-0.000153170095" />
+    <TRA:setting name="@ProbDVZ" value="-0.000134213009" />
+
+    <TRA:setting name="@ProbDX" value="-196.971282030832" />
+    <TRA:setting name="@ProbDY" value="74.97796182233" />
+    <TRA:setting name="@ProbDZ" value="14.289932868487" />
+
+    <TRA:setting name="@ProbDVX" value="-0.006863288927" />
+    <TRA:setting name="@ProbDVY" value="0.006594659128" />
+    <TRA:setting name="@ProbDVZ" value="0.017336409609" />
+
+    <TRA:setting name="@ProbKeplerLine2" value="1 25544U 98067A   11062.66968330  .00024457  00000-0  18183-3 0  9357" />
+    <TRA:setting name="@ProbKeplerLine3" value="2 25544 051.6480 342.0829 0005279 039.9625 033.1957 15.72669582704292" />
+    <TRA:setting name="@ProbKeplerLine2" value="1 25544U 98067A   11291.79166666  .00024457  00000-0  18183-3 0  9357" />
+    <TRA:setting name="@ProbKeplerLine3" value="2 25544 051.6480 342.0829 0005279 039.9625 033.1957 15.72669582704292" />
+
+     <TRA:setting name="@ProbKeplerLine2" value="1 88888U 98067A   11291.79166666  .00073094  13844-3  66816-4 0  8" />
+     <TRA:setting name="@ProbKeplerLine3" value="2 88888 072.8435 115.9689 0086731 052.6988 110.5714 16.05824518704292" />
+
+     <TRA:setting name="ProbKeplerLine2" value="1 25544U 98067A   13331.09576263  .00014981  00000-0  26452-3 0  1086" />
+     <TRA:setting name="ProbKeplerLine3" value="2 25544 051.6512 021.2013 0001143 099.6314 347.0821 15.50581010859971" />
+
+      <TRA:setting name="@ProbKeplerLine1" value="0 NAVSTAR 15 (USA 42)" />
+      <TRA:setting name="@ProbKeplerLine2" value="1 20185U 89064A   13331.47286605 -.00000027  00000-0  00000+0 0  3478" />
+      <TRA:setting name="@ProbKeplerLine3" value="2 20185 054.3952 246.8636 0014123 263.2077 345.0976 01.86084982170883" />
+
+      <TRA:setting name="@ProbKeplerLine1" value="0 NAVSTAR 16 (USA 47)" />
+      <TRA:setting name="@ProbKeplerLine2" value="1 20302U 89085A   13330.73772122 -.00000050  00000-0  00000+0 0  5517" />
+      <TRA:setting name="@ProbKeplerLine3" value="2 20302 055.8526 346.5927 0006697 002.9190 179.6262 01.89423001171667" />
+
+      <TRA:setting name="@ProbKeplerLine1" value="0 NAVSTAR 17 (USA 49)" />
+      <TRA:setting name="@ProbKeplerLine2" value="1 20361U 89097A   13331.33166777  .00000103  00000-0  00000+0 0   495" />
+      <TRA:setting name="@ProbKeplerLine3" value="2 20361 053.9231 173.6164 0018695 245.7484 013.3052 01.89174493162614" />
+
+      <TRA:setting name="@ProbKeplerLine1" value="0 BRIZ-M" />
+      <TRA:setting name="@ProbKeplerLine2" value="1 39286U 13056B   13330.80981764 -.00000059  00000-0  00000+0 0   250" />
+      <TRA:setting name="@ProbKeplerLine3" value="2 39286 023.5285 332.4959 6042427 021.7647 355.7158 02.18174083  1258" />
+
+      <TRA:setting name="@ProbKeplerLine1" value="0 BRIZ-M" />
+      <TRA:setting name="@ProbKeplerLine2" value="1 39285U 13056A   13331.57553947  .00000152  00000-0  00000+0 0   514" />
+      <TRA:setting name="@ProbKeplerLine3" value="2 39285 000.0853 291.4426 0001368 317.1482 068.8134 01.00273241   614" />
+</TRA:section>
+
+
+<TRA:section name="TraInfo">
+
+<!-- starting date (1 jan 2000) = 2451544.5JD 
+    2001 == 2451910.5 2002 =  2452275.5 2003 == 2452640.5 2004 == 2453005.5
+    2005 == 2453371.5 2006 == 2453736.5 2007 == 2454101.5 2008 == 2454466.5
+    2009 == 2454832.5 2010 == 2455197.5 2011 == 2455562.5 2012 == 2455927.5
+    2013 == 2456293.5 2014 == 2456658.5 2015 == 2457023.5 
+    or set as in keplers epoch: 11291.79166666
+    or set as normal date and time DD/MM/YY HH:MM:SS:MLS-->
+    or negativge value set current date
+    or (not implemented et) set as normal date and time DD/MM/YY HH:MM:SS:MLS-->
+    <TRA:setting name="dStartJD0" value="2451544.5" />
+    <TRA:setting name="dStartSecond" value="2451544.5" />
+    <TRA:setting name="dStartJD0" value="2455625.1696833" />
+    <TRA:setting name="dStartJD0" value="11291.79166666" />
+    <TRA:setting name="dStartJD0" value="13075.0" />
+    <TRA:setting name="dMinFromNow" value="3" />
+    <TRA:setting name="dStartJD0" value="-60" />
+    <TRA:setting name="dStartJD" value="07/05/14 08:28:00:000" />
+    <TRA:setting name="dStartJD1" value="07/05/14 10:00:52:000" />
+    <TRA:setting name="dStartJD2" value="07/05/14 11:33:44:000" />
+    <TRA:setting name="dStartJD3" value="07/05/14 13:06:36:000" />
+    <TRA:setting name="dStartJD4" value="07/05/14 14:39:28:000" />
+    <TRA:setting name="dStartJD5" value="07/05/14 16:12:20:000" />
+    <TRA:setting name="dStartJD6" value="07/05/14 17:45:12:000" />
+    <TRA:setting name="dStartJD7" value="07/05/14 19:18:04:000" />
+    <TRA:setting name="dStartJD8" value="07/05/14 20:50:56:000" />
+    <TRA:setting name="dStartJD9" value="07/05/14 22:23:48:000" />
+
+    <TRA:setting name="dStartJDa" value="07/05/14 23:56:41:000" />
+    <TRA:setting name="dStartJDb" value="08/05/14 01:29:33:000" />
+    <TRA:setting name="dStartJDc" value="08/05/14 03:02:25:000" />
+    <TRA:setting name="dStartJDd" value="08/05/14 04:35:17:000" />
+    <TRA:setting name="dStartJDe" value="08/05/14 06:08:09:000" />
+    <TRA:setting name="dStartJDf" value="08/05/14 07:41:01:000" />
+    <TRA:setting name="dStartJDh" value="08/05/14 09:13:53:000" />
+    <TRA:setting name="dStartJDh" value="08/05/14 08:28:00:000" />
+    <TRA:setting name="dStartJDk" value="08/05/14 09:07:39:850" />
+    <TRA:setting name="dStartJDl" value="07/05/14 22:20:18:940" />
+    <TRA:setting name="dStartJDb" value="07/05/14 22:10:48:940" />
+
+    <TRA:setting name="dStartJD0" value="07/05/14 08:28:00:000" />
+    <TRA:setting name="dStartJD1" value="07/05/14 09:47:33:056" />
+
+
+
+    <TRA:setting name="dStartJD9" value="07/05/14 22:10:34:837" />
+
+    <TRA:setting name="dStartJD*" value="07/05/14 10:00:52:000" />
+    <TRA:setting name="dStartJD*" value="07/05/14 11:20:52:000" />
+
+
+    <TRA:setting name="dStartJD0" value="07/05/14 09:20:00:000" />
+    <TRA:setting name="dStartJD1" value="07/05/14 10:52:52:000" />
+    <TRA:setting name="dStartJD2" value="07/05/14 12:25:44:000" />
+    <TRA:setting name="dStartJD3" value="07/05/14 13:58:36:000" />
+    <TRA:setting name="dStartJD4" value="07/05/14 15:31:28:000" />
+    <TRA:setting name="dStartJD5" value="07/05/14 17:04:20:000" />
+    <TRA:setting name="dStartJD6" value="07/05/14 18:37:12:000" />
+    <TRA:setting name="dStartJD7" value="07/05/14 20:10:04:000" />
+    <TRA:setting name="dStartJD8" value="07/05/14 21:42:56:000" />
+    <TRA:setting name="dStartJD9" value="07/05/14 23:15:48:000" />
+
+    <TRA:setting name="dStartJDa" value="08/05/14 00:48:41:000" />
+    <TRA:setting name="dStartJDb" value="08/05/14 02:21:33:000" />
+    <TRA:setting name="dStartJDc" value="08/05/14 03:54:25:000" />
+    <TRA:setting name="dStartJDd" value="08/05/14 05:27:17:000" />
+    <TRA:setting name="dStartJDe" value="08/05/14 07:00:09:000" />
+    <TRA:setting name="dStartJDf" value="08/05/14 08:33:01:000" />
+    <TRA:setting name="dStartJDh" value="08/05/14 10:05:53:000" />
+    <TRA:setting name="dStartJDk" value="08/05/14 09:59:39:850" />
+
+
+
+    <TRA:setting name="dStartJD0" value="11291.854004622962962962962962963" />
+    <TRA:setting name="dStartJD0" value="11292.79166666" />
+
+    <TRA:setting name="TRAVisual1" value="travisual.xml" />
+    <TRA:setting name="TRAVisual" value="http://96.49.96.50/SatCtrl/PostTra.aspx" />
+
+
+    <TRA:setting name="RGBImageW" value="1280" />
+    <TRA:setting name="RGBImageH" value="720" />
+<!-- int iProfile = 0; 
+              // 0 == XY , 1 == YZ, 2 == XZ 3 == -YZ 4 == -XZ 5==-XY
+              // 0 or XY is a view from North to south, 5 (- XY) is a view from south to north
+              // 1 or YZ is a view to easter -->
+    <TRA:setting name="RGBView" value="0" />
+
+<!--  EARTH 2 MOON  9 -->
+    <TRA:setting name="RGBReferenceBody" value="2" />
+<!-- max amount of pictures -->
+    <TRA:setting name="RGBMaxPictures" value="128" />
+<!-- one picture per sec -->
+    <TRA:setting name="RGBSecPerPictures" value="8640" />
+<!-- scale in m -->
+    <TRA:setting name="RGBScale" value="90000000" />
+
+<!--                               // SGP - use SGP from Space Track Report 3 to calculate position and velocity based on TLE
+                                   // SGP4 - use SPG4 to calulate initial position and velocity from TLE
+                                   // SGP8 - use SGP8
+                                   // KEPLER - use internal "kepler" function to calculate position
+                                   // INTERNAL use of internal data
+                                   // ProbTime=<time>, ProbC=<count of integral iterations>, ProbT=<delta time of iterations>
+                                   // ProbX0=<X0>, ProbY0=<Y0>, ProbZ0=<Z0>, ProbVX0=<VX0>, ProbVY0=<VY0>, ProbVZ0=<VZ0>, 
+                                   //   ProbIFX1=<integral Fx>, ProbIFY1=<integral Fy>, ProbIFZ1=<integral Fz>
+                                   //   ProbIFX2=<integral Fx>, ProbIFY2=<integral Fy>, ProbIFZ2=<integral Fz>
+                                   //   ProbIFX3=<integral Fx>, ProbIFY3=<integral Fy>, ProbIFZ3=<integral Fz>
+                                   //   ProbIVX1=<integral VX>, ProbIVY1=<integral VY>, ProbIVZ1=<integral VZ>
+                                   //   ProbIVX2=<integral VX>, ProbIVY2=<integral VY>, ProbIVZ2=<integral VZ>
+                                   //   ProbIVX3=<integral VX>, ProbIVY3=<integral VY>, ProbIVZ3=<integral VZ>
+-->
+    <TRA:setting name="UseSatData" value="SGP8" />
+
+<!-- Cnk and Snk file data -->
+    <TRA:setting name="EarthModelFile" value="egm96" />
+    <TRA:setting name="GM_MODEL" value="398600.4418e9" />
+    <TRA:setting name="R0_MODEL" value="6378137.00" />
+
+<!-- Cnk and Snk file data n max value do be used from the file  -->
+    <TRA:setting name="EarthModelCoefs" value="64" />
+<!-- Smoothness Coefficients for "EartModelCoefs" -->
+    <TRA:setting name="EarthSmoothCoefStart" value="37" />
+
+<!-- amount threads to do calclulation in parallel =0== one thread 
+     that paramether must be after EarthModelCoefs 
+     it split equaly coefs calculations 
+     param must be less or equal of a core cpu  on a computer-->
+    <TRA:setting name="CpuCore" value="0" />
+
+
+    <TRA:setting name="IterPerSec9" value="127" />
+    <TRA:setting name="IterPerSec" value="479" />
+    <TRA:setting name="IterPerSec2" value="1013" />
+    <TRA:setting name="IterPerSec3" value="1523" />
+    <TRA:setting name="IterPerSec4" value="3167" />
+    <TRA:setting name="IterPerSec5" value="5507" />
+    <TRA:setting name="IterPerSec11" value="11014" />
+
+    <TRA:setting name="StartLandingIteraPerSec" value="772050" />
+<!-- next vaue actualy just a reference it will be used in-->
+<!-- GMMoon = MoonM * GBig and GMEarth = EarthM*GBig      -->
+<!-- know GMMoon and GMEarth will give proper value for M -->
+    <TRA:setting name="Gbig" value="6.6742799999999995e-011" />
+    <TRA:setting name="Gbig0" value="6.6738177929210037e-011" />
+    <TRA:setting name="TotalDays" value="0.2" />
+    <TRA:setting name="TotalDaysX" value="16" />
+
+    <TRA:setting name="TotalDays0" value="0.062337962962962962962962962962963" />
+    <TRA:setting name="TotalDays0" value="0.124675925925925925925925925924" />
+
+
+    <TRA:setting name="EarthCurTime" value="11036.971719672511" />
+    <TRA:setting name="AU" value="149597870697.39999" />
+
+         <TRA:setting name="GRSTNNAME" value="vancouver" />
+         <TRA:setting name="GRSTNLat" value="49.257735" />
+         <TRA:setting name="GRSTNLong" value="-123.123904" />
+
+
+         <TRA:setting name="GRSTNNAME" value="Sarasota" />
+         <TRA:setting name="GRSTNLat" value="27.306121" />
+         <TRA:setting name="GRSTNLong" value="-82.569112" />
+
+         <TRA:setting name="GRSTNNAME" value="Joao Pessoa" />
+         <TRA:setting name="GRSTNLat" value="-7.153526" />
+         <TRA:setting name="GRSTNLong" value="-34.88966" />
+
+         <TRA:setting name="GRSTNNAME" value="Cape Town" />
+         <TRA:setting name="GRSTNLat" value="-33.916743" />
+         <TRA:setting name="GRSTNLong" value="18.402658" />
+
+         <TRA:setting name="GRSTNNAME" value="Donetsk" />
+         <TRA:setting name="GRSTNLat" value="47.971091" />
+         <TRA:setting name="GRSTNLong" value="37.712352" />
+
+         <TRA:setting name="GRSTNNAME" value="Karaganda" />
+         <TRA:setting name="GRSTNLat" value="49.789355" />
+         <TRA:setting name="GRSTNLong" value="73.070583" />
+
+         <TRA:setting name="GRSTNNAME" value="Perth" />
+         <TRA:setting name="GRSTNLat" value="-31.967891" />
+         <TRA:setting name="GRSTNLong" value="115.883274" />
+
+         <TRA:setting name="GRSTNNAME" value="Hilo" />
+         <TRA:setting name="GRSTNLat" value="19.707243" />
+         <TRA:setting name="GRSTNLong" value="-155.064983" />
+
+
+         <TRA:setting name="GRSTNNAME" value="Rarotonga" />
+         <TRA:setting name="GRSTNLat" value="-21.255302" />
+         <TRA:setting name="GRSTNLong" value="-159.768333" />
+
+<!-- target point on the Moon -->
+    <TRA:setting name="Targetlongitude" value="-15" />
+    <TRA:setting name="Targetlatitude" value="-2" />
+<!-- Mass and dimentions -->
+    <TRA:setting name="EarthR" value="6371000" />
+    <TRA:setting name="MoonR" value="1737100" />
+
+
+<!--next line will force recalculation of SunM based on G constant -->
+    <TRA:setting name="SunR" value="696342000" />
+
+<!-- next line will force calculation of a Earth and Moon mass -->
+<!-- it is not in use - value just for reference and fo trigger -->
+
+<!-- next line (value == "1.0") will force calculation
+                         of a Earth kepler position -->
+    <TRA:setting name="EarthCalcKepler" value="0.0" />
+
+<!-- next line will force assigning velocities and positions 
+     based on JPL data -->
+
+    <TRA:setting name="UseJPLxyz" value="1.0" />
+
+<!-- optimization started from engine 0 -->
+    <TRA:setting name="StartOptim" value="0" />
+
+<!-- amount of engines to optimizel 0 - no optimization -->
+   <TRA:setting name="MaxOptim" value="3" />
+
+<!-- no engines fired just everything is flying -->
+   <TRA:setting name="JustFlySimulation" value="1" />
+
+</TRA:section>
+<TRA:section name="pulsars" value="0.0">
+   <TRA:setting name="N" value="88"/>
+   <TRA:setting name="Name" value="B0329+54"/>
+   <TRA:setting name="ELONG" value="65.19"/>
+   <TRA:setting name="ELAT" value="34.26"/>
+   <TRA:setting name="P0" value="0.714519699726"/>
+   <TRA:setting name="S400mJy" value="1500"/>
+
+   <TRA:setting name="N" value="114"/>
+   <TRA:setting name="Name" value="J0437-4715"/>
+   <TRA:setting name="ELONG" value="50.47"/>
+   <TRA:setting name="ELAT" value="-67.87"/>
+   <TRA:setting name="P0" value="0.005757451924362137"/>
+   <TRA:setting name="S400mJy" value="550"/>
+
+   <TRA:setting name="N" value="119"/>
+   <TRA:setting name="Name" value="B0450-18"/>
+   <TRA:setting name="ELONG" value="68.83"/>
+   <TRA:setting name="ELAT" value="-40.20"/>
+   <TRA:setting name="P0" value="0.548939223294"/>
+   <TRA:setting name="S400mJy" value="82"/>
+
+   <TRA:setting name="N" value="151"/>
+   <TRA:setting name="Name" value="B0531+21"/>
+   <TRA:setting name="ELONG" value="84.10"/>
+   <TRA:setting name="ELAT" value="-1.29"/>
+   <TRA:setting name="P0" value="0.03308471603"/>
+   <TRA:setting name="S400mJy" value="550"/>
+
+   <TRA:setting name="N" value="193"/>
+   <TRA:setting name="Name" value="B0628-28"/>
+   <TRA:setting name="ELONG" value="100.96"/>
+   <TRA:setting name="ELAT" value="-51.73"/>
+   <TRA:setting name="P0" value="1.24441859615"/>
+   <TRA:setting name="S400mJy" value="206"/>
+
+   <TRA:setting name="N" value="225"/>
+   <TRA:setting name="Name" value="B0736-40"/>
+   <TRA:setting name="ELONG" value="130.29"/>
+   <TRA:setting name="ELAT" value="-60.75"/>
+   <TRA:setting name="P0" value="0.374919985032"/>
+   <TRA:setting name="S400mJy" value="190"/>
+
+   <TRA:setting name="N" value="226"/>
+   <TRA:setting name="Name" value="B0740-28"/>
+   <TRA:setting name="ELONG" value="125.33"/>
+   <TRA:setting name="ELAT" value="-48.71"/>
+   <TRA:setting name="P0" value="0.166762291572"/>
+   <TRA:setting name="S400mJy" value="296"/>
+
+   <TRA:setting name="N" value="244"/>
+   <TRA:setting name="Name" value="B0818-13"/>
+   <TRA:setting name="ELONG" value="131.40"/>
+   <TRA:setting name="ELAT" value="-32.38"/>
+   <TRA:setting name="P0" value="1.2381295438682"/>
+   <TRA:setting name="S400mJy" value="102"/>
+
+   <TRA:setting name="N" value="259"/>
+   <TRA:setting name="Name" value="B0833-45"/>
+   <TRA:setting name="ELONG" value="153.37"/>
+   <TRA:setting name="ELAT" value="-60.36"/>
+   <TRA:setting name="P0" value="0.089328385024"/>
+   <TRA:setting name="S400mJy" value="5000"/>
+
+   <TRA:setting name="N" value="260"/>
+   <TRA:setting name="Name" value="B0834+06"/>
+   <TRA:setting name="ELONG" value="130.04"/>
+   <TRA:setting name="ELAT" value="-11.98"/>
+   <TRA:setting name="P0" value="1.2737682915785"/>
+   <TRA:setting name="S400mJy" value="89"/>
+
+   <TRA:setting name="N" value="262"/>
+   <TRA:setting name="Name" value="B0835-41"/>
+   <TRA:setting name="ELONG" value="150.64"/>
+   <TRA:setting name="ELAT" value="-57.04"/>
+   <TRA:setting name="P0" value="0.751623617646"/>
+   <TRA:setting name="S400mJy" value="197"/>
+
+   <TRA:setting name="N" value="322"/>
+   <TRA:setting name="Name" value="B0950+08"/>
+   <TRA:setting name="ELONG" value="147.71"/>
+   <TRA:setting name="ELAT" value="-4.62"/>
+   <TRA:setting name="P0" value="0.2530651649482"/>
+   <TRA:setting name="S400mJy" value="400"/>
+
+   <TRA:setting name="N" value="328"/>
+   <TRA:setting name="Name" value="B0959-54"/>
+   <TRA:setting name="ELONG" value="187.70"/>
+   <TRA:setting name="ELAT" value="-59.88"/>
+   <TRA:setting name="P0" value="1.43658262920"/>
+   <TRA:setting name="S400mJy" value="80"/>
+
+   <TRA:setting name="N" value="393"/>
+   <TRA:setting name="Name" value="B1055-52"/>
+   <TRA:setting name="ELONG" value="195.77"/>
+   <TRA:setting name="ELAT" value="-52.39"/>
+   <TRA:setting name="P0" value="0.197107608187"/>
+   <TRA:setting name="S400mJy" value="80"/>
+
+   <TRA:setting name="N" value="443"/>
+   <TRA:setting name="Name" value="B1133+16"/>
+   <TRA:setting name="ELONG" value="168.15"/>
+   <TRA:setting name="ELAT" value="12.16"/>
+   <TRA:setting name="P0" value="1.187913065936"/>
+   <TRA:setting name="S400mJy" value="257"/>
+
+   <TRA:setting name="N" value="466"/>
+   <TRA:setting name="Name" value="B1154-62"/>
+   <TRA:setting name="ELONG" value="216.88"/>
+   <TRA:setting name="ELAT" value="-54.63"/>
+   <TRA:setting name="P0" value="0.400522048340"/>
+   <TRA:setting name="S400mJy" value="145"/>
+
+   <TRA:setting name="N" value="503"/>
+   <TRA:setting name="Name" value="B1237+25"/>
+   <TRA:setting name="ELONG" value="178.45"/>
+   <TRA:setting name="ELAT" value="26.64"/>
+   <TRA:setting name="P0" value="1.3824491030388"/>
+   <TRA:setting name="S400mJy" value="110"/>
+
+   <TRA:setting name="N" value="507"/>
+   <TRA:setting name="Name" value="B1240-64"/>
+   <TRA:setting name="ELONG" value="225.57"/>
+   <TRA:setting name="ELAT" value="-52.66"/>
+   <TRA:setting name="P0" value="0.388480921041"/>
+   <TRA:setting name="S400mJy" value="110"/>
+
+   <TRA:setting name="N" value="567"/>
+   <TRA:setting name="Name" value="B1323-58"/>
+   <TRA:setting name="ELONG" value="227.16"/>
+   <TRA:setting name="ELAT" value="-45.27"/>
+   <TRA:setting name="P0" value="0.47799086689"/>
+   <TRA:setting name="S400mJy" value="120"/>
+
+   <TRA:setting name="N" value="571"/>
+   <TRA:setting name="Name" value="B1323-62"/>
+   <TRA:setting name="ELONG" value="229.87"/>
+   <TRA:setting name="ELAT" value="-48.10"/>
+   <TRA:setting name="P0" value="0.52991319210"/>
+   <TRA:setting name="S400mJy" value="135"/>
+
+   <TRA:setting name="N" value="611"/>
+   <TRA:setting name="Name" value="B1356-60"/>
+   <TRA:setting name="ELONG" value="233.39"/>
+   <TRA:setting name="ELAT" value="-44.60"/>
+   <TRA:setting name="P0" value="0.12750077685"/>
+   <TRA:setting name="S400mJy" value="105"/>
+
+   <TRA:setting name="N" value="658"/>
+   <TRA:setting name="Name" value="B1426-66"/>
+   <TRA:setting name="ELONG" value="241.71"/>
+   <TRA:setting name="ELAT" value="-48.01"/>
+   <TRA:setting name="P0" value="0.785440757324"/>
+   <TRA:setting name="S400mJy" value="130"/>
+
+   <TRA:setting name="N" value="679"/>
+   <TRA:setting name="Name" value="B1449-64"/>
+   <TRA:setting name="ELONG" value="243.44"/>
+   <TRA:setting name="ELAT" value="-45.02"/>
+   <TRA:setting name="P0" value="0.1794847539641"/>
+   <TRA:setting name="S400mJy" value="230"/>
+
+   <TRA:setting name="N" value="683"/>
+   <TRA:setting name="Name" value="B1451-68"/>
+   <TRA:setting name="ELONG" value="246.56"/>
+   <TRA:setting name="ELAT" value="-49.00"/>
+   <TRA:setting name="P0" value="0.2633768148933"/>
+   <TRA:setting name="S400mJy" value="350"/>
+
+   <TRA:setting name="N" value="699"/>
+   <TRA:setting name="Name" value="B1508+55"/>
+   <TRA:setting name="ELONG" value="188.03"/>
+   <TRA:setting name="ELAT" value="67.22"/>
+   <TRA:setting name="P0" value="0.739681922904"/>
+   <TRA:setting name="S400mJy" value="114"/>
+
+   <TRA:setting name="N" value="821"/>
+   <TRA:setting name="Name" value="B1556-44"/>
+   <TRA:setting name="ELONG" value="247.11"/>
+   <TRA:setting name="ELAT" value="-23.57"/>
+   <TRA:setting name="P0" value="0.2570560976508"/>
+   <TRA:setting name="S400mJy" value="110"/>
+
+   <TRA:setting name="N" value="978"/>
+   <TRA:setting name="Name" value="B1641-45"/>
+   <TRA:setting name="ELONG" value="255.87"/>
+   <TRA:setting name="ELAT" value="-23.46"/>
+   <TRA:setting name="P0" value="0.455059775403"/>
+   <TRA:setting name="S400mJy" value="375"/>
+
+   <TRA:setting name="N" value="981"/>
+   <TRA:setting name="Name" value="B1642-03"/>
+   <TRA:setting name="ELONG" value="250.19"/>
+   <TRA:setting name="ELAT" value="18.86"/>
+   <TRA:setting name="P0" value="0.387689698034"/>
+   <TRA:setting name="S400mJy" value="393"/>
+
+   <TRA:setting name="N" value="1007"/>
+   <TRA:setting name="Name" value="B1648-42"/>
+   <TRA:setting name="ELONG" value="256.75"/>
+   <TRA:setting name="ELAT" value="-20.11"/>
+   <TRA:setting name="P0" value="0.84408066596"/>
+   <TRA:setting name="S400mJy" value="100"/>
+
+   <TRA:setting name="N" value="1178"/>
+   <TRA:setting name="Name" value="B1727-47"/>
+   <TRA:setting name="ELONG" value="264.78"/>
+   <TRA:setting name="ELAT" value="-24.43"/>
+   <TRA:setting name="P0" value="0.82982878524"/>
+   <TRA:setting name="S400mJy" value="190"/>
+
+   <TRA:setting name="N" value="1341"/>
+   <TRA:setting name="Name" value="B1749-28"/>
+   <TRA:setting name="ELONG" value="268.45"/>
+   <TRA:setting name="ELAT" value="-4.68"/>
+   <TRA:setting name="P0" value="0.56255763553"/>
+   <TRA:setting name="S400mJy" value="1100"/>
+
+   <TRA:setting name="N" value="1530"/>
+   <TRA:setting name="Name" value="B1818-04"/>
+   <TRA:setting name="ELONG" value="275.500072"/>
+   <TRA:setting name="ELAT" value="18.87910"/>
+   <TRA:setting name="P0" value="0.598075929665"/>
+   <TRA:setting name="S400mJy" value="157"/>
+
+   <TRA:setting name="N" value="1629"/>
+   <TRA:setting name="Name" value="B1831-03"/>
+   <TRA:setting name="ELONG" value="278.924582"/>
+   <TRA:setting name="ELAT" value="19.52746"/>
+   <TRA:setting name="P0" value="0.68670444412"/>
+   <TRA:setting name="S400mJy" value="89"/>
+
+   <TRA:setting name="N" value="1869"/>
+   <TRA:setting name="Name" value="B1857-26"/>
+   <TRA:setting name="ELONG" value="283.65"/>
+   <TRA:setting name="ELAT" value="-3.29"/>
+   <TRA:setting name="P0" value="0.6122092044383"/>
+   <TRA:setting name="S400mJy" value="131"/>
+
+   <TRA:setting name="N" value="1879"/>
+   <TRA:setting name="Name" value="B1859+03"/>
+   <TRA:setting name="ELONG" value="287.139002"/>
+   <TRA:setting name="ELAT" value="26.046990"/>
+   <TRA:setting name="P0" value="0.65545023949"/>
+   <TRA:setting name="S400mJy" value="165"/>
+
+   <TRA:setting name="N" value="1978"/>
+   <TRA:setting name="Name" value="B1911-04"/>
+   <TRA:setting name="ELONG" value="289.34"/>
+   <TRA:setting name="ELAT" value="17.53"/>
+   <TRA:setting name="P0" value="0.825935803096"/>
+   <TRA:setting name="S400mJy" value="118"/>
+
+   <TRA:setting name="N" value="2067"/>
+   <TRA:setting name="Name" value="B1929+10"/>
+   <TRA:setting name="ELONG" value="297.05"/>
+   <TRA:setting name="ELAT" value="32.29"/>
+   <TRA:setting name="P0" value="0.226517635038"/>
+   <TRA:setting name="S400mJy" value="303"/>
+
+   <TRA:setting name="N" value="2078"/>
+   <TRA:setting name="Name" value="B1933+16"/>
+   <TRA:setting name="ELONG" value="299.33"/>
+   <TRA:setting name="ELAT" value="37.31"/>
+   <TRA:setting name="P0" value="0.3587384107696"/>
+   <TRA:setting name="S400mJy" value="242"/>
+
+   <TRA:setting name="N" value="2092"/>
+   <TRA:setting name="Name" value="B1937+21"/>
+   <TRA:setting name="ELONG" value="301.97"/>
+   <TRA:setting name="ELAT" value="42.30"/>
+   <TRA:setting name="P0" value="0.001557806472448817"/>
+   <TRA:setting name="S400mJy" value="240"/>
+
+   <TRA:setting name="N" value="2124"/>
+   <TRA:setting name="Name" value="B1946+35"/>
+   <TRA:setting name="ELONG" value="310.62"/>
+   <TRA:setting name="ELAT" value="55.35"/>
+   <TRA:setting name="P0" value="0.717311174076"/>
+   <TRA:setting name="S400mJy" value="145"/>
+
+   <TRA:setting name="N" value="2176"/>
+   <TRA:setting name="Name" value="B2016+28"/>
+   <TRA:setting name="ELONG" value="316.46"/>
+   <TRA:setting name="ELAT" value="46.69"/>
+   <TRA:setting name="P0" value="0.5579534804225"/>
+   <TRA:setting name="S400mJy" value="314"/>
+
+   <TRA:setting name="N" value="2231"/>
+   <TRA:setting name="Name" value="B2111+46"/>
+   <TRA:setting name="ELONG" value="345.94380"/>
+   <TRA:setting name="ELAT" value="58.13401"/>
+   <TRA:setting name="P0" value="1.014684793189"/>
+   <TRA:setting name="S400mJy" value="230"/>
+
+   <TRA:setting name="N" value="2255"/>
+   <TRA:setting name="Name" value="J2145-0750"/>
+   <TRA:setting name="ELONG" value="326.02"/>
+   <TRA:setting name="ELAT" value="5.31"/>
+   <TRA:setting name="P0" value="0.01605242391433660"/>
+   <TRA:setting name="S400mJy" value="100"/>
+
+   <TRA:setting name="N" value="2263"/>
+   <TRA:setting name="Name" value="B2154+40"/>
+   <TRA:setting name="ELONG" value="351.29"/>
+   <TRA:setting name="ELAT" value="48.46"/>
+   <TRA:setting name="P0" value="1.525265633965"/>
+   <TRA:setting name="S400mJy" value="105"/>
+
+   <TRA:setting name="N" value="2276"/>
+   <TRA:setting name="Name" value="B2217+47"/>
+   <TRA:setting name="ELONG" value="3.29"/>
+   <TRA:setting name="ELAT" value="52.54"/>
+   <TRA:setting name="P0" value="0.5384688219194"/>
+   <TRA:setting name="S400mJy" value="111"/>
+
+   <TRA:setting name="N" value="2308"/>
+   <TRA:setting name="Name" value="B2310+42"/>
+   <TRA:setting name="ELONG" value="10.60"/>
+   <TRA:setting name="ELAT" value="43.12"/>
+   <TRA:setting name="P0" value="0.3494336821331"/>
+   <TRA:setting name="S400mJy" value="89"/>
+
+</TRA:section>
+
+            <!--     now all engines    -->
+<TRA:section name="Engine" value="0.0" >
+    <TRA:setting name="EngineNumber" value="0" />
+    <TRA:setting name="EngineOnSatellite" value="0" />
+    <!-- convinent coeff - instead of entry real values just assume scaled version-->
+
+     <TRA:setting name="PropCoeff" value="0.05" />
+
+     <TRA:setting name="Weight" value="17.157" />
+     <TRA:setting name="TotalWeight" value="21.996" />
+
+    <!-- iteration per sec from engine's plot -->
+    <TRA:setting name="DeltaT" value="5" />
+
+     <!-- 2- EARTH 9-MOON for calculation distanses-->
+     <TRA:setting name="NearBody" value="2" />
+
+     <!-- calculates 
+          0 Perigee to a center of NearBody
+          1 Apogee to a center of NearBody
+          3 taget practice not far then distance earth-moon
+          4 target practice to apoint on a moon's surface 
+          8 intial period -->
+     <TRA:setting name="Calculate" value="8" />
+
+     <!-- AngleType 0 - tangent line to orbit (elipse) oposit velocity
+                    1 - two angles set with reference to NearBody centre direction
+                    2 - 3 angles set vector fire (constant all fire) 
+                    3 - oposit vector of velocity
+                    4 - same direction as vector of velocity -->
+     <TRA:setting name="AngleType" value="0" />
+
+     <!-- 2- EARTH 9-MOON for firing angle -->
+     <TRA:setting name="AngleOnBody" value="2" />
+
+    <!-- first angle: in a plane over vector from the center of NearBody and Sat
+         and vector of velocity. Angle: Centre,Sat,Direction 
+         (aggle == 90 degr is a Tangent line to elipse) -->
+         <TRA:setting name="FireAng1" value="1" />
+
+     <!-- second angle from projection of a velocity vector to a  
+         plane perpendicular to direction to centre of nearbody -->
+    <TRA:setting name="FireAng2" value="1" />
+
+    <TRA:setting name="XVector" value="-1" />
+    <TRA:setting name="YVector" value="1.1537307924011437" />
+    <TRA:setting name="ZVector" value="0.9986199954416527" />
+
+     <TRA:setting name="OptimizationInitialStep" value="10" />
+     <TRA:setting name="OptimizationDecCoef" value="10" />
+     <TRA:setting name="OptimizationStop" value="1" />
+
+        <TRA:setting name="Period" value="5494.000000" />
+
+    <!-- set impulses in a time -->
+        <TRA:setting name="FireTime" value="11944" />
+
+     <TRA:setting name="ImplVal" value="0.0" />
+     <TRA:setting name="ImplVal" value="3400.0" />
+     <TRA:setting name="ImplVal" value="3000.0" />
+     <TRA:setting name="ImplVal" value="3100.0" />
+     <TRA:setting name="ImplVal" value="3500.0" />
+
+     <TRA:setting name="ImplVal" value="3550.0" />
+     <TRA:setting name="ImplVal" value="3600.0" />
+     <TRA:setting name="ImplVal" value="3600.0" />
+     <TRA:setting name="ImplVal" value="3700.0" />
+     <TRA:setting name="ImplVal" value="3750.0" />
+
+     <TRA:setting name="ImplVal" value="3800.0" />
+     <TRA:setting name="ImplVal" value="3850.0" />
+     <TRA:setting name="ImplVal" value="3900.0" />                                      
+     <TRA:setting name="ImplVal" value="3950.0" />
+     <TRA:setting name="ImplVal" value="4000.0" />
+
+     <TRA:setting name="ImplVal" value="4000.0" />
+     <TRA:setting name="ImplVal" value="4000.0" />
+     <TRA:setting name="ImplVal" value="4000.0" />
+     <TRA:setting name="ImplVal" value="4000.0" />
+     <TRA:setting name="ImplVal" value="4000.0" />
+       
+     <TRA:setting name="ImplVal" value="3980.0" />
+     <TRA:setting name="ImplVal" value="3960.0" />
+     <TRA:setting name="ImplVal" value="3940.0" />
+     <TRA:setting name="ImplVal" value="3920.0" />
+     <TRA:setting name="ImplVal" value="3900.0" />
+
+     <TRA:setting name="ImplVal" value="3885.0" />
+     <TRA:setting name="ImplVal" value="3850.0" />
+     <TRA:setting name="ImplVal" value="3815.0" />
+     <TRA:setting name="ImplVal" value="3780.0" />
+     <TRA:setting name="ImplVal" value="3745.0" />
+
+     <TRA:setting name="ImplVal" value="3710.0" />
+     <TRA:setting name="ImplVal" value="3695.0" />
+     <TRA:setting name="ImplVal" value="3680.0" />
+     <TRA:setting name="ImplVal" value="3665.0" />
+     <TRA:setting name="ImplVal" value="3650.0" />
+
+     <TRA:setting name="ImplVal" value="3600.0" />
+     <TRA:setting name="ImplVal" value="3500.0" />
+     <TRA:setting name="ImplVal" value="3500.0" />
+     <TRA:setting name="ImplVal" value="3400.0" />
+     <TRA:setting name="ImplVal" value="3150.0" />
+
+     <TRA:setting name="ImplVal" value="2000.0" />
+     <TRA:setting name="ImplVal" value="250.0" />
+     <TRA:setting name="ImplVal" value="0.0" />
+
+</TRA:section>
+
+
+<TRA:section name="Engine" value="1" >
+    <TRA:setting name="EngineNumber" value="1" />
+    <TRA:setting name="EngineOnSatellite" value="0" />
+    <!-- convinent coeff - instead of entry real values just assume scaled version-->
+     <TRA:setting name="PropCoeff" value="0.05" />
+
+     <TRA:setting name="Weight" value="17.157" />
+     <TRA:setting name="TotalWeight" value="21.996" />
+
+
+    <!-- iteration per sec from engine's plot -->
+    <TRA:setting name="DeltaT" value="5" />
+
+     <!-- 2- EARTH 9-MOON for calculation distanses-->
+     <TRA:setting name="NearBody" value="2" />
+
+     <!-- calculates 
+          0 Perigee to a center of NearBody
+          1 Apogee to a center of NearBody
+          3 taget practice not far then distance earth-moon
+          4 target practice to apoint on a moon's surface -->
+     <TRA:setting name="Calculate" value="0" />
+
+     <!-- AngleType 0 - tangent line to orbit (elipse) oposit velocity
+                    1 - two angles set with reference to NearBody centre direction
+                    2 - 3 angles set vector fire (constant all fire) 
+                    3 - oposit vector of velocity
+                    4 - same direction as vector of velocity -->
+     <TRA:setting name="AngleType" value="0" />
+
+     <!-- 2- EARTH 9-MOON for firing angle -->
+     <TRA:setting name="AngleOnBody" value="2" />
+
+    <!-- first angle: in a plane over vector from the center of NearBody and Sat
+         and vector of velocity. Angle: Centre,Sat,Direction 
+         (aggle == 90 degr is a Tangent line to elipse) -->
+         <TRA:setting name="FireAng1" value="0" />
+
+     <!-- second angle from projection of a velocity vector to a  
+         plane perpendicular to direction to centre of nearbody -->
+    <TRA:setting name="FireAng2" value="0" />
+
+    <TRA:setting name="XVector" value="1" />
+    <TRA:setting name="YVector" value="-1.1714976896575997" />
+    <TRA:setting name="ZVector" value="-1.019984486712751" />
+
+     <TRA:setting name="OptimizationInitialStep" value="100" />
+     <TRA:setting name="OptimizationDecCoef" value="10" />
+     <TRA:setting name="OptimizationStop" value="1" />
+
+        <TRA:setting name="Period" value="5542.000000" />
+
+    <!-- set impulses in a time -->
+        <TRA:setting name="FireTime" value="25788" />
+        <TRA:setting name="FireTime" value="28626" />
+
+     <TRA:setting name="ImplVal" value="0.0" />
+     <TRA:setting name="ImplVal" value="3400.0" />
+     <TRA:setting name="ImplVal" value="3000.0" />
+     <TRA:setting name="ImplVal" value="3100.0" />
+     <TRA:setting name="ImplVal" value="3500.0" />
+
+     <TRA:setting name="ImplVal" value="3550.0" />
+     <TRA:setting name="ImplVal" value="3600.0" />
+     <TRA:setting name="ImplVal" value="3600.0" />
+     <TRA:setting name="ImplVal" value="3700.0" />
+     <TRA:setting name="ImplVal" value="3750.0" />
+
+     <TRA:setting name="ImplVal" value="3800.0" />
+     <TRA:setting name="ImplVal" value="3850.0" />
+     <TRA:setting name="ImplVal" value="3900.0" />                                      
+     <TRA:setting name="ImplVal" value="3950.0" />
+     <TRA:setting name="ImplVal" value="4000.0" />
+
+     <TRA:setting name="ImplVal" value="4000.0" />
+     <TRA:setting name="ImplVal" value="4000.0" />
+     <TRA:setting name="ImplVal" value="4000.0" />
+     <TRA:setting name="ImplVal" value="4000.0" />
+     <TRA:setting name="ImplVal" value="4000.0" />
+       
+     <TRA:setting name="ImplVal" value="3980.0" />
+     <TRA:setting name="ImplVal" value="3960.0" />
+     <TRA:setting name="ImplVal" value="3940.0" />
+     <TRA:setting name="ImplVal" value="3920.0" />
+     <TRA:setting name="ImplVal" value="3900.0" />
+
+     <TRA:setting name="ImplVal" value="3885.0" />
+     <TRA:setting name="ImplVal" value="3850.0" />
+     <TRA:setting name="ImplVal" value="3815.0" />
+     <TRA:setting name="ImplVal" value="3780.0" />
+     <TRA:setting name="ImplVal" value="3745.0" />
+
+     <TRA:setting name="ImplVal" value="3710.0" />
+     <TRA:setting name="ImplVal" value="3695.0" />
+     <TRA:setting name="ImplVal" value="3680.0" />
+     <TRA:setting name="ImplVal" value="3665.0" />
+     <TRA:setting name="ImplVal" value="3650.0" />
+
+     <TRA:setting name="ImplVal" value="3600.0" />
+     <TRA:setting name="ImplVal" value="3500.0" />
+     <TRA:setting name="ImplVal" value="3500.0" />
+     <TRA:setting name="ImplVal" value="3400.0" />
+     <TRA:setting name="ImplVal" value="3150.0" />
+
+     <TRA:setting name="ImplVal" value="2000.0" />
+     <TRA:setting name="ImplVal" value="250.0" />
+     <TRA:setting name="ImplVal" value="0.0" />
+
+</TRA:section>
+
+
+<TRA:section name="Engine" value="2" >
+    <TRA:setting name="EngineNumber" value="2" />
+    <TRA:setting name="EngineOnSatellite" value="0" />
+    <!-- convinent coeff - instead of entry real values just assume scaled version-->
+
+     <TRA:setting name="PropCoeff" value="3.0" />
+
+     <TRA:setting name="Weight" value="17.157" />
+     <TRA:setting name="TotalWeight" value="21.996" />
+
+
+    <!-- iteration per sec from engine's plot -->
+    <TRA:setting name="DeltaT" value="5" />
+
+     <!-- 2- EARTH 9-MOON for calculation distanses-->
+     <TRA:setting name="NearBody" value="2" />
+
+     <!-- calculates 
+          0 Perigee to a center of NearBody
+          1 Apogee to a center of NearBody
+          3 taget practice not far then distance earth-moon
+          4 target practice to apoint on a moon's surface -->
+     <TRA:setting name="Calculate" value="1" />
+
+     <!-- AngleType 0 - tangent line to orbit (elipse) oposit velocity
+                    1 - two angles set with reference to NearBody centre direction
+                    2 - 3 angles set vector fire (constant all fire) 
+                    3 - oposit vector of velocity
+                    4 - same direction as vector of velocity -->
+     <TRA:setting name="AngleType" value="0" />
+
+     <!-- 2- EARTH 9-MOON for firing angle -->
+     <TRA:setting name="AngleOnBody" value="2" />
+
+    <!-- first angle: in a plane over vector from the center of NearBody and Sat
+         and vector of velocity. Angle: Centre,Sat,Direction 
+         (aggle == 90 degr is a Tangent line to elipse) -->
+         <TRA:setting name="FireAng1" value="0" />
+
+     <!-- second angle from projection of a velocity vector to a  
+         plane perpendicular to direction to centre of nearbody -->
+    <TRA:setting name="FireAng2" value="0" />
+
+    <TRA:setting name="XVector" value="1" />
+    <TRA:setting name="YVector" value="0.85063762129876674" />
+    <TRA:setting name="ZVector" value="1.4117704154874764" />
+
+     <TRA:setting name="OptimizationInitialStep" value="100" />
+     <TRA:setting name="OptimizationDecCoef" value="10" />
+     <TRA:setting name="OptimizationStop" value="1" />
+
+        <TRA:setting name="Period" value="5590.000000" />
+
+    <!-- set impulses in a time -->
+        <TRA:setting name="FireTime" value="39810" />
+
+     <TRA:setting name="ImplVal" value="0.0" />
+     <TRA:setting name="ImplVal" value="3400.0" />
+     <TRA:setting name="ImplVal" value="3000.0" />
+     <TRA:setting name="ImplVal" value="3100.0" />
+     <TRA:setting name="ImplVal" value="3500.0" />
+
+     <TRA:setting name="ImplVal" value="3550.0" />
+     <TRA:setting name="ImplVal" value="3600.0" />
+     <TRA:setting name="ImplVal" value="3600.0" />
+     <TRA:setting name="ImplVal" value="3700.0" />
+     <TRA:setting name="ImplVal" value="3750.0" />
+
+     <TRA:setting name="ImplVal" value="3800.0" />
+     <TRA:setting name="ImplVal" value="3850.0" />
+     <TRA:setting name="ImplVal" value="3900.0" />                                      
+     <TRA:setting name="ImplVal" value="3950.0" />
+     <TRA:setting name="ImplVal" value="4000.0" />
+
+     <TRA:setting name="ImplVal" value="4000.0" />
+     <TRA:setting name="ImplVal" value="4000.0" />
+     <TRA:setting name="ImplVal" value="4000.0" />
+     <TRA:setting name="ImplVal" value="4000.0" />
+     <TRA:setting name="ImplVal" value="4000.0" />
+       
+     <TRA:setting name="ImplVal" value="3980.0" />
+     <TRA:setting name="ImplVal" value="3960.0" />
+     <TRA:setting name="ImplVal" value="3940.0" />
+     <TRA:setting name="ImplVal" value="3920.0" />
+     <TRA:setting name="ImplVal" value="3900.0" />
+
+     <TRA:setting name="ImplVal" value="3885.0" />
+     <TRA:setting name="ImplVal" value="3850.0" />
+     <TRA:setting name="ImplVal" value="3815.0" />
+     <TRA:setting name="ImplVal" value="3780.0" />
+     <TRA:setting name="ImplVal" value="3745.0" />
+
+     <TRA:setting name="ImplVal" value="3710.0" />
+     <TRA:setting name="ImplVal" value="3695.0" />
+     <TRA:setting name="ImplVal" value="3680.0" />
+     <TRA:setting name="ImplVal" value="3665.0" />
+     <TRA:setting name="ImplVal" value="3650.0" />
+
+     <TRA:setting name="ImplVal" value="3600.0" />
+     <TRA:setting name="ImplVal" value="3500.0" />
+     <TRA:setting name="ImplVal" value="3500.0" />
+     <TRA:setting name="ImplVal" value="3400.0" />
+     <TRA:setting name="ImplVal" value="3150.0" />
+
+     <TRA:setting name="ImplVal" value="2000.0" />
+     <TRA:setting name="ImplVal" value="250.0" />
+     <TRA:setting name="ImplVal" value="0.0" />
+</TRA:section>
+
+
+<TRA:section name="Engine" value="3" >
+    <TRA:setting name="EngineNumber" value="3" />
+    <TRA:setting name="EngineOnSatellite" value="0" />
+    <!-- convinent coeff - instead of entry real values just assume scaled version-->
+
+     <TRA:setting name="PropCoeff" value="0.1" />
+
+     <TRA:setting name="Weight" value="17.157" />
+     <TRA:setting name="TotalWeight" value="21.996" />
+
+    <!-- iteration per sec from engine's plot -->
+    <TRA:setting name="DeltaT" value="5" />
+
+     <!-- 2- EARTH 9-MOON for calculation distanses-->
+     <TRA:setting name="NearBody" value="9" />
+
+     <!-- calculates 
+          0 Perigee to a center of NearBody
+          1 Apogee to a center of NearBody
+          3 taget practice not far then distance earth-moon
+          4 target practice to apoint on a moon's surface -->
+     <TRA:setting name="CalculateAP" value="5" />
+
+     <!-- AngleType 0 - tangent line to orbit (elipse) oposit velocity
+                    1 - two angles set with reference to NearBody centre direction
+                    2 - 3 angles set vector fire (constant all fire) 
+                    3 - oposit vector of velocity
+                    4 - same direction as vector of velocity -->
+     <TRA:setting name="AngleType" value="2" />
+
+     <!-- 2- EARTH 9-MOON for firing angle -->
+     <TRA:setting name="AngleOnBody" value="9" />
+
+    <!-- first angle: in a plane over vector from the center of NearBody and Sat
+         and vector of velocity. Angle: Centre,Sat,Direction 
+         (aggle == 90 degr is a Tangent line to elipse) -->
+         <TRA:setting name="FireAng1" value="0" />
+
+     <!-- second angle from projection of a velocity vector to a  
+         plane perpendicular to direction to centre of nearbody -->
+    <TRA:setting name="FireAng2" value="0" />
+
+    <TRA:setting name="XVector" value="1.483789" />
+    <TRA:setting name="YVector" value="-0.097251000000000004" />
+    <TRA:setting name="ZVector" value="0.56240299999999999" />
+
+     <TRA:setting name="OptimizationInitialStep" value="0.25" />
+     <TRA:setting name="OptimizationDecCoef" value="2" />
+     <TRA:setting name="OptimizationStop" value="1.0000000000000001e-005" />
+
+    <!-- set impulses in a time -->
+        <TRA:setting name="FireTime" value="650000" />
+
+     <TRA:setting name="ImplVal" value="0.0" />
+     <TRA:setting name="ImplVal" value="3400.0" />
+     <TRA:setting name="ImplVal" value="3000.0" />
+     <TRA:setting name="ImplVal" value="3100.0" />
+     <TRA:setting name="ImplVal" value="3500.0" />
+
+     <TRA:setting name="ImplVal" value="3550.0" />
+     <TRA:setting name="ImplVal" value="3600.0" />
+     <TRA:setting name="ImplVal" value="3600.0" />
+     <TRA:setting name="ImplVal" value="3700.0" />
+     <TRA:setting name="ImplVal" value="3750.0" />
+
+     <TRA:setting name="ImplVal" value="3800.0" />
+     <TRA:setting name="ImplVal" value="3850.0" />
+     <TRA:setting name="ImplVal" value="3900.0" />                                      
+     <TRA:setting name="ImplVal" value="3950.0" />
+     <TRA:setting name="ImplVal" value="4000.0" />
+
+     <TRA:setting name="ImplVal" value="4000.0" />
+     <TRA:setting name="ImplVal" value="4000.0" />
+     <TRA:setting name="ImplVal" value="4000.0" />
+     <TRA:setting name="ImplVal" value="4000.0" />
+     <TRA:setting name="ImplVal" value="4000.0" />
+       
+     <TRA:setting name="ImplVal" value="3980.0" />
+     <TRA:setting name="ImplVal" value="3960.0" />
+     <TRA:setting name="ImplVal" value="3940.0" />
+     <TRA:setting name="ImplVal" value="3920.0" />
+     <TRA:setting name="ImplVal" value="3900.0" />
+
+     <TRA:setting name="ImplVal" value="3885.0" />
+     <TRA:setting name="ImplVal" value="3850.0" />
+     <TRA:setting name="ImplVal" value="3815.0" />
+     <TRA:setting name="ImplVal" value="3780.0" />
+     <TRA:setting name="ImplVal" value="3745.0" />
+
+     <TRA:setting name="ImplVal" value="3710.0" />
+     <TRA:setting name="ImplVal" value="3695.0" />
+     <TRA:setting name="ImplVal" value="3680.0" />
+     <TRA:setting name="ImplVal" value="3665.0" />
+     <TRA:setting name="ImplVal" value="3650.0" />
+
+     <TRA:setting name="ImplVal" value="3600.0" />
+     <TRA:setting name="ImplVal" value="3500.0" />
+     <TRA:setting name="ImplVal" value="3500.0" />
+     <TRA:setting name="ImplVal" value="3400.0" />
+     <TRA:setting name="ImplVal" value="3150.0" />
+
+     <TRA:setting name="ImplVal" value="2000.0" />
+     <TRA:setting name="ImplVal" value="250.0" />
+     <TRA:setting name="ImplVal" value="0.0" />
+
+</TRA:section>
+
+
+<TRA:section name="Engine" value="4" >
+    <TRA:setting name="EngineNumber" value="4" />
+    <TRA:setting name="EngineOnSatellite" value="0" />
+    <!-- convinent coeff - instead of entry real values just assume scaled version-->
+
+     <TRA:setting name="PropCoeff" value="0.25" />
+
+     <TRA:setting name="Weight" value="17.157" />
+     <TRA:setting name="TotalWeight" value="21.996" />
+
+
+    <!-- iteration per sec from engine's plot -->
+    <TRA:setting name="DeltaT" value="5" />
+
+     <!-- 2- EARTH 9-MOON for calculation distanses-->
+     <TRA:setting name="NearBody" value="9" />
+
+     <!-- calculates 
+          0 Perigee to a center of NearBody
+          1 Apogee to a center of NearBody
+          3 taget practice not far then distance earth-moon
+          4 target practice to apoint on a moon's surface -->
+     <TRA:setting name="CalculateAP" value="0" />
+
+     <!-- AngleType 0 - tangent line to orbit (elipse) oposit velocity
+                    1 - two angles set with reference to NearBody centre direction
+                    2 - 3 angles set vector fire (constant all fire) 
+                    3 - oposit vector of velocity
+                    4 - same direction as vector of velocity -->
+     <TRA:setting name="AngleType" value="4" />
+
+     <!-- 2- EARTH 9-MOON for firing angle -->
+     <TRA:setting name="AngleOnBody" value="9" />
+
+    <!-- first angle: in a plane over vector from the center of NearBody and Sat
+         and vector of velocity. Angle: Centre,Sat,Direction 
+         (aggle == 90 degr is a Tangent line to elipse) -->
+         <TRA:setting name="FireAng1" value="0" />
+
+     <!-- second angle from projection of a velocity vector to a  
+         plane perpendicular to direction to centre of nearbody -->
+    <TRA:setting name="FireAng2" value="0" />
+
+    <TRA:setting name="XVector" value="-780.76188869660473" />
+    <TRA:setting name="YVector" value="-2363.0551757693047" />
+    <TRA:setting name="ZVector" value="-454.32231393279926" />
+
+     <TRA:setting name="OptimizationInitialStep" value="0.10000000000000001" />
+     <TRA:setting name="OptimizationDecCoef" value="2" />
+     <TRA:setting name="OptimizationStop" value="0.10000000000000001" />
+
+    <!-- set impulses in a time -->
+        <TRA:setting name="FireTime" value="772052" />
+
+     <TRA:setting name="ImplVal" value="0.0" />
+     <TRA:setting name="ImplVal" value="3400.0" />
+     <TRA:setting name="ImplVal" value="3000.0" />
+     <TRA:setting name="ImplVal" value="3100.0" />
+     <TRA:setting name="ImplVal" value="3500.0" />
+
+     <TRA:setting name="ImplVal" value="3550.0" />
+     <TRA:setting name="ImplVal" value="3600.0" />
+     <TRA:setting name="ImplVal" value="3600.0" />
+     <TRA:setting name="ImplVal" value="3700.0" />
+     <TRA:setting name="ImplVal" value="3750.0" />
+
+     <TRA:setting name="ImplVal" value="3800.0" />
+     <TRA:setting name="ImplVal" value="3850.0" />
+     <TRA:setting name="ImplVal" value="3900.0" />                                      
+     <TRA:setting name="ImplVal" value="3950.0" />
+     <TRA:setting name="ImplVal" value="4000.0" />
+
+     <TRA:setting name="ImplVal" value="4000.0" />
+     <TRA:setting name="ImplVal" value="4000.0" />
+     <TRA:setting name="ImplVal" value="4000.0" />
+     <TRA:setting name="ImplVal" value="4000.0" />
+     <TRA:setting name="ImplVal" value="4000.0" />
+       
+     <TRA:setting name="ImplVal" value="3980.0" />
+     <TRA:setting name="ImplVal" value="3960.0" />
+     <TRA:setting name="ImplVal" value="3940.0" />
+     <TRA:setting name="ImplVal" value="3920.0" />
+     <TRA:setting name="ImplVal" value="3900.0" />
+
+     <TRA:setting name="ImplVal" value="3885.0" />
+     <TRA:setting name="ImplVal" value="3850.0" />
+     <TRA:setting name="ImplVal" value="3815.0" />
+     <TRA:setting name="ImplVal" value="3780.0" />
+     <TRA:setting name="ImplVal" value="3745.0" />
+
+     <TRA:setting name="ImplVal" value="3710.0" />
+     <TRA:setting name="ImplVal" value="3695.0" />
+     <TRA:setting name="ImplVal" value="3680.0" />
+     <TRA:setting name="ImplVal" value="3665.0" />
+     <TRA:setting name="ImplVal" value="3650.0" />
+
+     <TRA:setting name="ImplVal" value="3600.0" />
+     <TRA:setting name="ImplVal" value="3500.0" />
+     <TRA:setting name="ImplVal" value="3500.0" />
+     <TRA:setting name="ImplVal" value="3400.0" />
+     <TRA:setting name="ImplVal" value="3150.0" />
+
+     <TRA:setting name="ImplVal" value="2000.0" />
+     <TRA:setting name="ImplVal" value="250.0" />
+     <TRA:setting name="ImplVal" value="0.0" />
+
+</TRA:section>
+<TRA:section name="Optim" value="0" >
+<!-- do optimization of an engine N... (0,1,2,3...)
+     it is posible to use 4 engines but optimize engine 3-->
+
+    <TRA:setting name="EngineToOptimize" value="0" />
+
+<!-- Type of optimization
+      1 - search for a minimum by adjusting time of firing
+      2 - search for a maximum by adjusting time of firing
+      3 - search for minimum by adjusting time of firing
+      4 - search fo minimum by adjusting angle of firing
+  initial step and decrease steps for each search specified
+  individualy for each engine -->
+
+    <TRA:setting name="TrajectoryOptimizationType" value="2" />
+     <!-- 2- EARTH 9-MOON for calculation distanses-->
+     <TRA:setting name="NearBody" value="2" />
+
+     <!-- calculates 
+          0 Perigee to a center of NearBody
+          1 Apogee to a center of NearBody
+          3 taget practice not far then distance earth-moon
+          4 target practice to a point on a moon's surface 
+          8 intial period -->
+     <TRA:setting name="Calculate" value="8" />
+
+<!-- last used engine (0,1,2,3..) in trajectory optimization or calculations 
+     lastengine == -1 disable optimization -->
+
+    <TRA:setting name="LastEngine" value="-1" />
+
+</TRA:section>
+
+<TRA:section name="Optim" value="1" >
+        <TRA:setting name="EngineToOptimize" value="0" />
+        <TRA:setting name="TrajectoryOptimizationType" value="2" />
+        <TRA:setting name="NearBody" value="2" />
+        <TRA:setting name="Calculate" value="9" />
+     <TRA:setting name="OptimizationInitialStep" value="10" />
+     <TRA:setting name="OptimizationDecCoef" value="10" />
+     <TRA:setting name="OptimizationStop" value="1" />
+        <TRA:setting name="LastEngine" value="0" />
+</TRA:section>
+
+<TRA:section name="Optim" value="2" >
+        <TRA:setting name="EngineToOptimize" value="0" />
+        <TRA:setting name="TrajectoryOptimizationType" value="2" />
+        <TRA:setting name="NearBody" value="2" />
+        <TRA:setting name="Calculate" value="1" />
+        <TRA:setting name="OptimizationInitialStep" value="10" />
+        <TRA:setting name="OptimizationDecCoef" value="10" />
+        <TRA:setting name="OptimizationStop" value="1" />
+        <TRA:setting name="LastEngine" value="0" />
+</TRA:section>
+                                    
+<TRA:section name="Optim" value="3" >
+        <TRA:setting name="EngineToOptimize" value="1" />
+        <TRA:setting name="TrajectoryOptimizationType" value="2" />
+        <TRA:setting name="NearBody" value="2" />
+        <TRA:setting name="Calculate" value="8" />
+     <TRA:setting name="OptimizationInitialStep" value="10" />
+     <TRA:setting name="OptimizationDecCoef" value="10" />
+     <TRA:setting name="OptimizationStop" value="1" />
+        <TRA:setting name="LastEngine" value="1" />
+</TRA:section>
+
+<TRA:section name="Optim" value="4" >
+        <TRA:setting name="EngineToOptimize" value="1" />
+        <TRA:setting name="TrajectoryOptimizationType" value="2" />
+        <TRA:setting name="NearBody" value="2" />
+        <TRA:setting name="Calculate" value="10" />
+     <TRA:setting name="OptimizationInitialStep" value="100" />
+     <TRA:setting name="OptimizationDecCoef" value="10" />
+     <TRA:setting name="OptimizationStop" value="1" />
+        <TRA:setting name="LastEngine" value="1" />
+</TRA:section>
+
+<TRA:section name="Optim" value="5" >
+        <TRA:setting name="EngineToOptimize" value="1" />
+        <TRA:setting name="TrajectoryOptimizationType" value="2" />
+        <TRA:setting name="NearBody" value="2" />
+        <TRA:setting name="Calculate" value="0" />
+     <TRA:setting name="OptimizationInitialStep" value="100" />
+     <TRA:setting name="OptimizationDecCoef" value="10" />
+     <TRA:setting name="OptimizationStop" value="1" />
+        <TRA:setting name="LastEngine" value="1" />
+</TRA:section>
+
+<TRA:section name="Optim" value="6" >
+        <TRA:setting name="EngineToOptimize" value="2" />
+        <TRA:setting name="TrajectoryOptimizationType" value="2" />
+        <TRA:setting name="NearBody" value="2" />
+        <TRA:setting name="Calculate" value="8" />
+     <TRA:setting name="OptimizationInitialStep" value="100" />
+     <TRA:setting name="OptimizationDecCoef" value="10" />
+     <TRA:setting name="OptimizationStop" value="1" />
+        <TRA:setting name="LastEngine" value="2" />
+</TRA:section>
+
+<TRA:section name="Optim" value="7" >
+        <TRA:setting name="EngineToOptimize" value="2" />
+        <TRA:setting name="TrajectoryOptimizationType" value="2" />
+        <TRA:setting name="NearBody" value="2" />
+        <TRA:setting name="Calculate" value="11" />
+     <TRA:setting name="OptimizationInitialStep" value="0.01" />
+     <TRA:setting name="OptimizationDecCoef" value="10" />
+     <TRA:setting name="OptimizationStop" value="0.0001" />
+        <TRA:setting name="LastEngine" value="2" />
+</TRA:section>
+
+
+<TRA:section name="Optim" value="8" >
+        <TRA:setting name="EngineToOptimize" value="2" />
+        <TRA:setting name="TrajectoryOptimizationType" value="6" />
+        <TRA:setting name="NearBody" value="2" />
+        <TRA:setting name="Calculate" value="12" />
+     <TRA:setting name="OptimizationInitialStep" value="0.01" />
+     <TRA:setting name="OptimizationDecCoef" value="10" />
+     <TRA:setting name="OptimizationStop" value="0.0001" />
+        <TRA:setting name="LastEngine" value="2" />
+</TRA:section>
+
+<TRA:section name="Optim" value="9" >
+        <TRA:setting name="EngineToOptimize" value="2" />
+        <TRA:setting name="TrajectoryOptimizationType" value="1" />
+        <TRA:setting name="NearBody" value="9" />
+        <TRA:setting name="Calculate" value="0" />
+     <TRA:setting name="OptimizationInitialStep" value="100" />
+     <TRA:setting name="OptimizationDecCoef" value="10" />
+     <TRA:setting name="OptimizationStop" value="1" />
+        <TRA:setting name="LastEngine" value="2" />
+</TRA:section>
+
+<TRA:section name="Optim" value="10" >
+<!-- calculates perigee to the Moon, search for minimum by adjusting time -->
+           <TRA:setting name="EngineToOptimize" value="2" />
+           <TRA:setting name="TrajectoryOptimizationType" value="6" />
+           <TRA:setting name="NearBody" value="9" />
+           <TRA:setting name="Calculate" value="0" />
+           <TRA:setting name="OptimizationInitialStep" value="0.01" />
+           <TRA:setting name="OptimizationDecCoef" value="10" />
+           <TRA:setting name="OptimizationStop" value="0.0001" />
+           <TRA:setting name="LastEngine" value="2" />
+
+        <TRA:setting name="Period" value="5358.000000" />
+</TRA:section>
+
+<TRA:section name="Optim" value="10" >
+<!-- calculates perigee to the Moon, search for minimum by adjusting time -->
+           <TRA:setting name="EngineToOptimize" value="2" />
+           <TRA:setting name="TrajectoryOptimizationType" value="6" />
+           <TRA:setting name="NearBody" value="9" />
+           <TRA:setting name="Calculate" value="0" />
+           <TRA:setting name="OptimizationInitialStep" value="0.01" />
+           <TRA:setting name="OptimizationDecCoef" value="10" />
+           <TRA:setting name="OptimizationStop" value="0.0001" />
+           <TRA:setting name="LastEngine" value="2" />
+
+        <TRA:setting name="Period" value="5358.000000" />
+</TRA:section>
+
+
+</data>
