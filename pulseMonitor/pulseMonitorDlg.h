@@ -33,7 +33,10 @@ public:
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
 
-
+    int m_SecondsPerScreen;
+    int m_FractionsPerScreen;
+    SYSTEMTIME myShowSysTime;
+    HBITMAP hBmpMainSignal ;
 // Implementation
 protected:
 	HICON m_hIcon;
@@ -47,4 +50,18 @@ protected:
 public:
     afx_msg void OnEnChangeEdit1();
     virtual BOOL DestroyWindow();
+    CListBox m_SecPerScreen;
+    afx_msg void OnLbnSelchangeListSecPerScreen();
+    afx_msg void OnNMCustomdrawSlider1(NMHDR *pNMHDR, LRESULT *pResult);
+    afx_msg void OnTimer(UINT_PTR nIDEvent);
+    CDateTimeCtrl m_Time;
+    CDateTimeCtrl m_Date;
+    CButton m_LastTime;
+    afx_msg void OnBnClickedCheckLast();
+//    CStatic m_Signal;
+//    CStatic m_Signal;
+    CStatic m_SIgnal;
+    CSliderCtrl m_SLider;
+    CButton m_ShowLines;
+    afx_msg void OnBnClickedCheckDotsLines();
 };

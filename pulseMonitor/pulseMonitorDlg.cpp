@@ -72,7 +72,16 @@ CpulseMonitorDlg::CpulseMonitorDlg(CWnd* pParent /*=NULL*/)
 
 void CpulseMonitorDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialogEx::DoDataExchange(pDX);
+    CDialogEx::DoDataExchange(pDX);
+    DDX_Control(pDX, IDC_LIST_SEC_PER_SCREEN, m_SecPerScreen);
+    DDX_Control(pDX, IDC_DATETIMEPICKERTIME, m_Time);
+    DDX_Control(pDX, IDC_DATETIMEPICKER_DATA, m_Date);
+    DDX_Control(pDX, IDC_CHECK_LAST, m_LastTime);
+    //  DDX_Control(pDX, IDC_STATIC_MAIN_SIGNAL, m_Signal);
+    //  DDX_Control(pDX, IDC_STATIC_MAIN_SIGNAL, m_Signal);
+    DDX_Control(pDX, IDC_STATIC_MAIN_SIGNAL, m_SIgnal);
+    DDX_Control(pDX, IDC_SLIDER_MAIN, m_SLider);
+    DDX_Control(pDX, IDC_CHECK_DOTS_LINES, m_ShowLines);
 }
 
 BEGIN_MESSAGE_MAP(CpulseMonitorDlg, CDialogEx)
@@ -80,6 +89,11 @@ BEGIN_MESSAGE_MAP(CpulseMonitorDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
     ON_EN_CHANGE(IDC_EDIT_SOURCE_XML, &CpulseMonitorDlg::OnEnChangeEdit1)
+    ON_LBN_SELCHANGE(IDC_LIST_SEC_PER_SCREEN, &CpulseMonitorDlg::OnLbnSelchangeListSecPerScreen)
+    ON_NOTIFY(NM_CUSTOMDRAW, IDC_SLIDER_MAIN, &CpulseMonitorDlg::OnNMCustomdrawSlider1)
+    ON_WM_TIMER()
+    ON_BN_CLICKED(IDC_CHECK_LAST, &CpulseMonitorDlg::OnBnClickedCheckLast)
+    ON_BN_CLICKED(IDC_CHECK_DOTS_LINES, &CpulseMonitorDlg::OnBnClickedCheckDotsLines)
 END_MESSAGE_MAP()
 
 
@@ -87,10 +101,25 @@ END_MESSAGE_MAP()
     LPHWAVEIN m_hWaveIn;
     BOOL fInsideCallBack = FALSE;
     WAVEHDR WAVEHDRMain;
-    char BUFERSND0[8000];
-	char BUFERSND1[8000];
+//#define SAMPLES_PER_SEC 44100
+#define SAMPLES_PER_SEC 250000
+#define NUMBER_OF_CHANNELS 2
+    char BUFERSND0_0[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2];
+    char BUFERSND0_1[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2];
+
+	char BUFERSND1_0[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2];
+    char BUFERSND1_1[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2];
 	BOOL DOStop =  FALSE;
-	WAVEHDR WaveHdr;
+	WAVEHDR WaveHdr_0;
+    WAVEHDR WaveHdr_1;
+    int g_SecondsPerScreen;
+    int g_FractionsPerScreen;
+    int g_isecond;
+    int g_i1Max = 128*256;
+    int g_i2Max = 128*256;
+    int g_i1Min = -128*256;
+    int g_i2Min = -128*256;
+
 // CpulseMonitorDlg message handlers
 #include "JPEGLIB.H"
 void
@@ -103,122 +132,129 @@ write_JPEG_file (char * filename,
 				 J_COLOR_SPACE ColorCode
 				 );
 
-#define IMAGE_W 1280
-#define IMAGE_H 720
+//#define IMAGE_W 1280
+//#define IMAGE_H 720
+//#define IMAGE_W 1090
+#define IMAGE_W 1024
+#define IMAGE_H 150
 //int RGBReferenceBody = EARTH;
 unsigned char bRGBImage[IMAGE_W*IMAGE_H*3];
 int bRGBImageW = IMAGE_W;
 int bRGBImageH = IMAGE_H;
 unsigned char PiCRGB[3] = {0x00,0x00,0x00};
+unsigned char PiCRGBGray[3] = {0x80,0x80,0x80};
 unsigned char PiCRGBBlue[3] = {0x00,0x00,0xFF};
 
 void putpixel(unsigned char *bRGB, int X, int Y)
 {
-    int iRow = (X) + (bRGBImageH - (Y))*bRGBImageW;
+    int iRow = (X) + (bRGBImageH - (Y))*bRGBImageW-1;
     if ((iRow*3 >=0) && (iRow*3 < (sizeof(bRGBImage) -3)))
     {
         memcpy(&bRGBImage[iRow*3],bRGB, 3);
     }
 }
-
+// should be no longer than 1 sec 
 LRESULT CALLBACK AudioStreamCallback(HWND hwndC,LPWAVEHDR lpWAVEHDR)
 {
-    for (int i = 0; i < lpWAVEHDR->dwBufferLength; i++)
+
+    int iSize = format.wf.nBlockAlign;
+    int iPoints = bRGBImageW/g_SecondsPerScreen;
+    int i1SecRep = lpWAVEHDR->dwBufferLength/ iPoints;
+    int iCurmsc = 0;
+    if (g_isecond >= g_SecondsPerScreen)
     {
-        signed char iVal = lpWAVEHDR->lpData[i];
-
+        g_isecond = 0;
+        memset(bRGBImage, 0xff, sizeof(bRGBImage));
     }
-    /*
-	int i,j, k, StoringLength;
-	char szAudioFN[_MAX_PATH];
-	(MyCCgApp->CountCaptureCurrent)++;
+    int i1Max = -128*256;
+    int i2Max = -128*256;
+    int i1Min = 128*256;
+    int i2Min = 128*256;
+    for (int i = 0; i < lpWAVEHDR->dwBufferLength; i+=iSize)
+    {
+        signed short iVal1 = *(signed short *)&lpWAVEHDR->lpData[i];
+        signed short iVal2 = *(signed short *)&lpWAVEHDR->lpData[i+2];
+        if (iVal1 > i1Max)
+            i1Max = iVal1;
+        if (iVal1 < i1Min)
+            i1Min = iVal1;
+        if (iVal2 > i2Max)
+            i2Max = iVal2;
+        if (iVal2 < i2Min)
+            i2Min = iVal2;
+    }
+    for (int j = 1; j <bRGBImageH; j++)
+    {
+        putpixel(PiCRGBGray, g_isecond*iPoints+1, j);
+    }
+    g_i1Max = (g_i1Max*9 + i1Max)/10;
+    g_i1Min = (g_i1Min*9 + i1Min)/10;
+    g_i2Max = (g_i2Max*9 + i2Max)/10;
+    g_i2Min = (g_i2Min*9 + i2Min)/10;
 
-	StoringLength = lpWAVEHDR->dwBufferLength;
+    int i1Mid = (g_i1Min+g_i1Max)/2;
+    int i2Mid = (g_i2Min+g_i2Max)/2;
+    int i1M = (g_i1Max-g_i1Min);
+    int i2M = (g_i2Max-g_i2Min);
 
-	if (iAudioBegin + StoringLength < iAudioEnd)
-	{
-		memcpy(&bAudioFrame[iAudioBegin], lpWAVEHDR->lpData, lpWAVEHDR->dwBufferLength);
-
-		iAudioBegin += lpWAVEHDR->dwBufferLength;
-		
-	}
-	else
-	{
-		int iLastCopyBeforSave = (iAudioEnd - iAudioBegin) &0xfffffff0;
-		int iLastCopyAfterSave = lpWAVEHDR->dwBufferLength - iLastCopyBeforSave;
-
-			memcpy(&bAudioFrame[iAudioBegin], lpWAVEHDR->lpData, iLastCopyBeforSave);
-			iAudioBegin += iLastCopyBeforSave;
-
-		// if we transmitting now this file then skip save to it and save to next one;
-		if (TransmitAudioFile == AudioFileNumber)
-		{
-			IncAudio(AudioFileNumber);
-		}
-		strcpy(szAudioFN, MyCCgApp->m_HTMLPath);
-		strcat(szAudioFN, "\\");
-		strcat(szAudioFN,AudioFileNames[AudioFileNumber]);
-
-		int iIFN = ImageFileNumber;
-		DecImage(iIFN);
-		AudioToImageTo[AudioFileNumber] = ImageFileNumber;
-
-		if (AudioFilesNow == 0)
-		{
-			AudioToImageFrom[AudioFileNumber] = 0;
-			AudioTimeStamp[AudioFileNumber] = TimeTick - //timeGetTime() - StartTime -
-				iAudioBegin /8;
-		}
-
-		*(DWORD*)&(AudioStmp[AudioFileNumber].dwAudioTimeCurent) = 
-			AudioTimeStamp[AudioFileNumber];
-
-		*(__int64*)&(AudioStmp[AudioFileNumber].dwAudioTimeCurent64) = 
-			(__int64)(AudioTimeStamp[AudioFileNumber]) + StartTime64;
-
-		DWORD NextT = TimeTick;//timeGetTime() - StartTime;// - lpWAVEHDR->dwBufferLength/8;
-		*(DWORD*)&(AudioStmp[AudioFileNumber].dwAudioTimeNext) = NextT;
-		int ist = AudioToImageFrom[AudioFileNumber];
-		int iFl =0;
-		while(ist != AudioToImageTo[AudioFileNumber] && iFl <16)
-		{
-			*(DWORD*)&(AudioStmp[AudioFileNumber].dwImageTime[iFl++]) = ImageTimeStamp[ist];
-			IncImage(ist);
-		}
-		AudioStmp[AudioFileNumber].bNImages = iFl;
-
-		SaveWavFile(szAudioFN ,AudioTimeStamp[AudioFileNumber],&AudioStmp[AudioFileNumber]);
-
-		if (++AudioFilesNow >= _MAX_NUMBER_OF_AUDIO_FILES)
-			AudioFilesNow = _MAX_NUMBER_OF_AUDIO_FILES;
-		
-		IncAudio(AudioFileNumber);
-		AudioToImageFrom[AudioFileNumber] = ImageFileNumber;
-		AudioTimeStamp[AudioFileNumber] = NextT;
-		
-		memcpy(&bAudioFrame[iAudioBegin], ((BYTE*)lpWAVEHDR->lpData)+iLastCopyBeforSave, iLastCopyAfterSave);
-		iAudioBegin += iLastCopyAfterSave;
-		MyCCgApp->fSwitch2K4KAudio = FALSE;
-	}
-	LPWAVEHDR a = lpWAVEHDR;
-    */
+    for (int i = 0; i < lpWAVEHDR->dwBufferLength; i+=i1SecRep)
+    {
+        signed short iVal1 = *(signed short *)&lpWAVEHDR->lpData[i];
+        signed short iVal2 = *(signed short *)&lpWAVEHDR->lpData[i+2];
+        int iiVal1 = iVal1;
+        int iiVal2 = iVal2;
+        putpixel(PiCRGBGray, g_isecond*iPoints+iCurmsc, bRGBImageH/4);
+        //putpixel(PiCRGBBlue, g_isecond*iPoints+iCurmsc, bRGBImageH/4 + (((bRGBImageH*(iiVal1-i1Mid))/4)/256)/128 );
+        putpixel(PiCRGBBlue, g_isecond*iPoints+iCurmsc, bRGBImageH/4 + ((bRGBImageH*(iiVal1-i1Mid))/4)/i1M );
+        putpixel(PiCRGBGray, g_isecond*iPoints+iCurmsc, (bRGBImageH*3)/4);
+        //putpixel(PiCRGBBlue, g_isecond*iPoints+iCurmsc, (bRGBImageH*3)/4 + (((bRGBImageH*(iiVal2-i2Mid))/4)/256)/128 );
+        putpixel(PiCRGBBlue, g_isecond*iPoints+iCurmsc, (bRGBImageH*3)/4 + ((bRGBImageH*(iiVal2-i2Mid))/4)/i2M);
+        iCurmsc++;
+        //if (iCurmsc >= iPoints)
+        //    break;
+    }
+    g_isecond++;
 	return(0);
 }
+SYSTEMTIME mySYsTime;
 void CALLBACK waveInProc(  HWAVEIN hwi, UINT uMsg, DWORD dwInstance, DWORD dwParam1, DWORD dwParam2 )
 {
+    WAVEHDR *pWaveHdr = (WAVEHDR *)dwParam1;
+    GetLocalTime(&mySYsTime);
 	if (WIM_DATA == uMsg)
 	{
 		fInsideCallBack = TRUE;
-		WAVEHDRMain.dwBufferLength = 8000;
-		WAVEHDRMain.lpData = BUFERSND1;
-		memcpy(BUFERSND1,BUFERSND0,sizeof(BUFERSND1));
-		waveInUnprepareHeader( (HWAVEIN)m_hWaveIn,(LPWAVEHDR)&WaveHdr,sizeof(WAVEHDR)  );
-		if (DOStop ==  FALSE)
-		{
-			waveInPrepareHeader( (HWAVEIN)m_hWaveIn, (LPWAVEHDR)&WaveHdr, sizeof(WAVEHDR) );
-			waveInAddBuffer( (HWAVEIN)	m_hWaveIn,(LPWAVEHDR)&WaveHdr, sizeof(WAVEHDR));
-			waveInStart((HWAVEIN)m_hWaveIn);
-		}
+        WAVEHDRMain.dwBufferLength = pWaveHdr->dwBufferLength;
+        if ((void*)(pWaveHdr->lpData) == (void*)&BUFERSND0_0) // is it first buffer?
+        {
+            memcpy(BUFERSND1_0,BUFERSND0_0,sizeof(BUFERSND1_0));
+            WAVEHDRMain.lpData = BUFERSND1_0;
+    		waveInUnprepareHeader( (HWAVEIN)m_hWaveIn,(LPWAVEHDR)&WaveHdr_0,sizeof(WAVEHDR)  );
+	    	if (DOStop ==  FALSE)
+		    {
+			    waveInPrepareHeader( (HWAVEIN)m_hWaveIn, (LPWAVEHDR)&WaveHdr_0, sizeof(WAVEHDR) );
+			    waveInAddBuffer( (HWAVEIN)	m_hWaveIn,(LPWAVEHDR)&WaveHdr_0, sizeof(WAVEHDR));
+		    }
+
+        }
+        else if ((void*)(pWaveHdr->lpData) == (void*)&BUFERSND0_1) // is it first buffer?
+        {
+            memcpy(BUFERSND1_1,BUFERSND0_1,sizeof(BUFERSND1_1));
+            WAVEHDRMain.lpData = BUFERSND1_1;
+    		waveInUnprepareHeader( (HWAVEIN)m_hWaveIn,(LPWAVEHDR)&WaveHdr_1,sizeof(WAVEHDR)  );
+	    	if (DOStop ==  FALSE)
+		    {
+			    waveInPrepareHeader( (HWAVEIN)m_hWaveIn, (LPWAVEHDR)&WaveHdr_1, sizeof(WAVEHDR) );
+			    waveInAddBuffer( (HWAVEIN)	m_hWaveIn,(LPWAVEHDR)&WaveHdr_1, sizeof(WAVEHDR));
+		    }
+
+        }
+
+        WAVEHDRMain.dwBytesRecorded = pWaveHdr->dwBytesRecorded;
+        WAVEHDRMain.dwFlags = pWaveHdr->dwFlags;
+        WAVEHDRMain.dwLoops = pWaveHdr->dwLoops;
+        WAVEHDRMain.reserved =pWaveHdr->reserved;
+        
 		AudioStreamCallback(NULL,&WAVEHDRMain);
 		fInsideCallBack = FALSE;
 	}
@@ -229,11 +265,16 @@ void StartWAVCapture(void)
 	if (m_hWaveIn==0)
 	{
 		format.wf.wFormatTag =  WAVE_FORMAT_PCM;
-		format.wf.nChannels = 1;
-		format.wf.nSamplesPerSec = 8000;
-		format.wf.nAvgBytesPerSec = 8000;
-		format.wf.nBlockAlign = 1;
-		format.wBitsPerSample = 8;
+        
+		format.wf.nChannels = NUMBER_OF_CHANNELS;
+		format.wf.nSamplesPerSec = SAMPLES_PER_SEC;//441000;
+        format.wBitsPerSample = 16;
+        if (format.wBitsPerSample  == 8)
+		    format.wf.nAvgBytesPerSec = format.wf.nSamplesPerSec*format.wf.nChannels;//441000;
+        else
+            format.wf.nAvgBytesPerSec = format.wf.nSamplesPerSec*format.wf.nChannels*2;//441000;
+		format.wf.nBlockAlign =  (short)((format.wf.nChannels * format.wBitsPerSample) / 8);
+
 
 		// open the device, have message come back to frame window
 		Mres = waveInOpen(
@@ -247,22 +288,42 @@ void StartWAVCapture(void)
 		if (Mres !=	MMSYSERR_NOERROR  )
 			 return;
 			 
-		WaveHdr.lpData=BUFERSND0;
-		WaveHdr.dwBufferLength = sizeof(BUFERSND0);
-		WaveHdr.dwBytesRecorded = 0L;
-		WaveHdr.dwFlags = 0L;
-		WaveHdr.dwLoops = 0L;
-		WaveHdr.dwUser = 0x1234;
+		WaveHdr_0.lpData=BUFERSND0_0;
+        //WaveHdr_0.lpNext=WaveHdr_1;
+		WaveHdr_0.dwBufferLength = sizeof(BUFERSND0_0);
+		WaveHdr_0.dwBytesRecorded = 0L;
+		WaveHdr_0.dwFlags = 0L;
+		WaveHdr_0.dwLoops = 0L;
+		WaveHdr_0.dwUser = 0x1234;
 		if (waveInPrepareHeader( (HWAVEIN)m_hWaveIn,
-							  (LPWAVEHDR)&WaveHdr,
+							  (LPWAVEHDR)&WaveHdr_0,
 							  sizeof(WAVEHDR) )	)
 		{
 		}
 		if (waveInAddBuffer( (HWAVEIN)	m_hWaveIn,
-						 (LPWAVEHDR)&WaveHdr,
+						 (LPWAVEHDR)&WaveHdr_0,
 						 sizeof(WAVEHDR))  )
 		{
 		}
+        // second buffer
+        WaveHdr_1.lpData=BUFERSND0_1;
+        //WaveHdr_1.lpNext=WaveHdr_0;
+		WaveHdr_1.dwBufferLength = sizeof(BUFERSND0_1);
+		WaveHdr_1.dwBytesRecorded = 0L;
+		WaveHdr_1.dwFlags = 0L;
+		WaveHdr_1.dwLoops = 0L;
+		WaveHdr_1.dwUser = 0x1234;
+		if (waveInPrepareHeader( (HWAVEIN)m_hWaveIn,
+							  (LPWAVEHDR)&WaveHdr_1,
+							  sizeof(WAVEHDR) )	)
+		{
+		}
+		if (waveInAddBuffer( (HWAVEIN)	m_hWaveIn,
+						 (LPWAVEHDR)&WaveHdr_1,
+						 sizeof(WAVEHDR))  )
+		{
+		}
+
 		if (waveInStart((HWAVEIN)m_hWaveIn))
 		{
 		}
@@ -275,15 +336,25 @@ void StopWAVCapture(void)
 	DOStop =  TRUE;
 	if (m_hWaveIn)
 	{
-
+        DOStop = TRUE;
+        for (int i = 0; i < 15; i++)
+        {
+            Sleep(200);
+        }
 		Mres = waveInStop((HWAVEIN)m_hWaveIn);
+       
 		Mres = waveInReset((HWAVEIN)m_hWaveIn);
 		Mres = waveInUnprepareHeader( (HWAVEIN)m_hWaveIn,
-								(LPWAVEHDR)&WaveHdr,
+								(LPWAVEHDR)&WaveHdr_0,
 								sizeof(WAVEHDR)  );
+   		Mres = waveInUnprepareHeader( (HWAVEIN)m_hWaveIn,
+								(LPWAVEHDR)&WaveHdr_1,
+								sizeof(WAVEHDR)  );
+
 		Mres = waveInClose((HWAVEIN)m_hWaveIn);
 		m_hWaveIn=0;
 	}
+    memset(bRGBImage, 0xff, sizeof(bRGBImage));
 }
 
 BOOL CpulseMonitorDlg::OnInitDialog()
@@ -317,6 +388,45 @@ BOOL CpulseMonitorDlg::OnInitDialog()
 
 	// TODO: Add extra initialization here
     StartWAVCapture();
+    m_SecPerScreen.AddString("0.9765625 ms");
+    m_SecPerScreen.AddString("1.953125 ms");
+    m_SecPerScreen.AddString("3.90625 ms");
+    m_SecPerScreen.AddString("7.8125 ms");
+    m_SecPerScreen.AddString("15.625 ms");
+    m_SecPerScreen.AddString("31.25 ms");
+    m_SecPerScreen.AddString("62.5 ms");
+    m_SecPerScreen.AddString("125 sec");
+    m_SecPerScreen.AddString("250 ms");
+    m_SecPerScreen.AddString("500 ms");
+
+    m_SecPerScreen.AddString("1 sec");
+    m_SecPerScreen.AddString("2 sec");
+    m_SecPerScreen.AddString("4 sec");
+    m_SecPerScreen.AddString("8 sec");
+    m_SecPerScreen.AddString("16 sec");
+    m_SecPerScreen.AddString("32 sec");
+    m_SecPerScreen.AddString("64 sec");
+    m_SecPerScreen.AddString("128 sec");
+    m_SecPerScreen.AddString("256 sec");
+    m_SecPerScreen.AddString("512 sec");
+    m_SecPerScreen.SetCurSel(10);
+    m_FractionsPerScreen = 1;
+    g_FractionsPerScreen = m_FractionsPerScreen;
+    m_SecondsPerScreen = 1;
+    g_SecondsPerScreen = m_SecondsPerScreen;
+    g_isecond = 0;
+    hBmpMainSignal = NULL;
+    memset(bRGBImage, 0xff, sizeof(bRGBImage));
+    //SYSTEMTIME mySYsTime;
+    GetLocalTime(&mySYsTime);
+    
+    CTime MyTime = CTime(mySYsTime);
+
+    m_Time.SetTime(&MyTime);
+    m_Date.SetTime(&MyTime);
+    m_LastTime.SetCheck(1);
+    m_ShowLines.SetCheck(0);
+    SetTimer(901,1000,NULL);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -386,6 +496,124 @@ void CpulseMonitorDlg::OnEnChangeEdit1()
 BOOL CpulseMonitorDlg::DestroyWindow()
 {
     // TODO: Add your specialized code here and/or call the base class
+    KillTimer(901);
+    if (hBmpMainSignal!=NULL)
+        DeleteObject(hBmpMainSignal);
+
     StopWAVCapture();
     return CDialogEx::DestroyWindow();
+}
+
+
+void CpulseMonitorDlg::OnLbnSelchangeListSecPerScreen()
+{
+    // TODO: Add your control notification handler code here
+    switch(m_SecPerScreen.GetCurSel())
+    {
+    case 0:  m_SecondsPerScreen = 1; m_FractionsPerScreen =512;break;
+    case 1:  m_SecondsPerScreen = 1; m_FractionsPerScreen =256;break;
+    case 2:  m_SecondsPerScreen = 1; m_FractionsPerScreen =128;break;
+    case 3:  m_SecondsPerScreen = 1; m_FractionsPerScreen =64;break;
+    case 4:  m_SecondsPerScreen = 1; m_FractionsPerScreen =32;break;
+    case 5:  m_SecondsPerScreen = 1; m_FractionsPerScreen =16;break;
+    case 6:  m_SecondsPerScreen = 1; m_FractionsPerScreen =8;break;
+    case 7:  m_SecondsPerScreen = 1; m_FractionsPerScreen =4;break;
+    case 8:  m_SecondsPerScreen = 1; m_FractionsPerScreen =2;break;
+    case 9:  m_SecondsPerScreen = 1; m_FractionsPerScreen =1;break;
+    case 10:  m_SecondsPerScreen = 1; m_FractionsPerScreen =1;break;
+    case 11:  m_SecondsPerScreen = 2; m_FractionsPerScreen =1;break;
+    case 12:  m_SecondsPerScreen = 4; m_FractionsPerScreen =1;break;
+    case 13:  m_SecondsPerScreen = 8; m_FractionsPerScreen =1;break;
+    case 14:  m_SecondsPerScreen = 16; m_FractionsPerScreen =1;break;
+    case 15:  m_SecondsPerScreen = 32; m_FractionsPerScreen =1;break;
+    case 16:  m_SecondsPerScreen = 64; m_FractionsPerScreen =1;break;
+    case 17:  m_SecondsPerScreen = 128; m_FractionsPerScreen =1;break;
+    case 18:  m_SecondsPerScreen = 256; m_FractionsPerScreen =1;break;
+    case 19:  m_SecondsPerScreen = 512; m_FractionsPerScreen =1;break;
+    }
+    g_SecondsPerScreen = m_SecondsPerScreen;
+    g_FractionsPerScreen = m_FractionsPerScreen;
+}
+
+
+void CpulseMonitorDlg::OnNMCustomdrawSlider1(NMHDR *pNMHDR, LRESULT *pResult)
+{
+    LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
+    // TODO: Add your control notification handler code here
+    *pResult = 0;
+}
+
+
+void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
+{
+    // TODO: Add your message handler code here and/or call default
+    if (nIDEvent== 901)
+    {
+        //SYSTEMTIME mySYsTime;
+        //GetLocalTime(&mySYsTime);
+        if (m_LastTime.GetCheck() == 1)
+        {
+            myShowSysTime = mySYsTime;
+            CTime MyTime = CTime(myShowSysTime);
+
+            m_Time.SetTime(&MyTime);
+            m_Date.SetTime(&MyTime);
+        }
+        BITMAPINFO binfMainLogo;
+       	memset((void*)&binfMainLogo,0,sizeof(binfMainLogo));
+
+        if (hBmpMainSignal!=NULL)
+    		DeleteObject(hBmpMainSignal);
+
+
+
+        // get a DC  
+        HDC         hDC;                    
+        hDC = ::GetDC(NULL); 
+ 		// create bitmap from DIB info. and bits 
+        RECT myRect;
+        m_SIgnal.GetWindowRect(&myRect);
+        RECT MainRect;
+        GetWindowRect(&MainRect);
+        RECT SliderRect;
+        m_SLider.GetWindowRect(&SliderRect);
+
+        
+
+		binfMainLogo.bmiHeader.biSize = sizeof (BITMAPINFOHEADER);
+        binfMainLogo.bmiHeader.biWidth = bRGBImageW;//read_image_width; 
+        binfMainLogo.bmiHeader.biHeight = bRGBImageH;//read_image_height; 
+		binfMainLogo.bmiHeader.biPlanes = 1; 
+		binfMainLogo.bmiHeader.biBitCount = 24; 
+		binfMainLogo.bmiHeader.biCompression = BI_RGB; 
+		binfMainLogo.bmiHeader.biSizeImage = 0; 
+		binfMainLogo.bmiHeader.biXPelsPerMeter = 0; 
+		binfMainLogo.bmiHeader.biYPelsPerMeter = 0; 
+		binfMainLogo.bmiHeader.biClrUsed = 0; 
+		binfMainLogo.bmiHeader.biClrImportant = 0; 
+		hBmpMainSignal = CreateDIBitmap(hDC, &(binfMainLogo.bmiHeader), CBM_INIT, bRGBImage, &binfMainLogo, DIB_RGB_COLORS); 
+		::ReleaseDC(NULL, hDC); 
+        //((CStatic*)GetDlgItem(IDC_STATIC_MAIN_SIGNAL))->SetBitmap(hBmpMainSignal);
+        //GetDlgItem(IDC_STATIC_MAIN_SIGNAL)->UpdateWindow();
+        m_SIgnal.SetBitmap(hBmpMainSignal);
+        //RECT myRect;
+        m_SIgnal.GetWindowRect(&myRect);
+        m_SIgnal.ValidateRect(&myRect);
+        m_SIgnal.UpdateWindow();
+    }
+    CDialogEx::OnTimer(nIDEvent);
+}
+
+
+void CpulseMonitorDlg::OnBnClickedCheckLast()
+{
+    // TODO: Add your control notification handler code here
+
+    //m_LastTime.SetCheck(0)
+}
+
+
+void CpulseMonitorDlg::OnBnClickedCheckDotsLines()
+{
+    // TODO: Add your control notification handler code here
 }
