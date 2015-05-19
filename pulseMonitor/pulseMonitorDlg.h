@@ -37,6 +37,8 @@ public:
     int m_FractionsPerScreen;
     SYSTEMTIME myShowSysTime;
     HBITMAP hBmpMainSignal ;
+    BOOL flRunningRecording;
+
 // Implementation
 protected:
 	HICON m_hIcon;
@@ -64,4 +66,23 @@ public:
     CSliderCtrl m_SLider;
     CButton m_ShowLines;
     afx_msg void OnBnClickedCheckDotsLines();
+    CStatic m_Period1;
+    CStatic m_Period2;
+    CStatic m_Period3;
+    CStatic m_Period4;
+    CStatic m_Period5;
+    CStatic m_Period6;
+    afx_msg void OnStnClickedStatic1Max();
+    CStatic m_1_max;
+    CStatic m_1_mid;
+    CStatic m_1_min;
+    CStatic m_2_max;
+    CStatic m_2_mid;
+    CStatic m_2_min;
+    CButton m_Next;
+    afx_msg void OnBnClickedNext();
+    CButton m_Run;
+    afx_msg void OnBnClickedButtonrun();
+    CListBox m_YScale;
+    afx_msg void OnLbnSelchangeListScale();
 };

@@ -53,6 +53,9 @@
     <ClCompile Include="..\testfileread\traimg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="procXML.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="pulseMonitor.rc">

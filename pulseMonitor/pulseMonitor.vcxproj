@@ -110,6 +110,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\testfileread\traimg.cpp" />
+    <ClCompile Include="procXML.cpp" />
     <ClCompile Include="pulseMonitor.cpp" />
     <ClCompile Include="pulseMonitorDlg.cpp" />
     <ClCompile Include="stdafx.cpp">

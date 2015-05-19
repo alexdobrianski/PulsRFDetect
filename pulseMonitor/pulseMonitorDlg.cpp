@@ -22,6 +22,8 @@
 #include "pulseMonitorDlg.h"
 #include "afxdialogex.h"
 #include "mmsystem.h"
+#define USE_GLOBAL
+#include "procXML.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -82,6 +84,21 @@ void CpulseMonitorDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_STATIC_MAIN_SIGNAL, m_SIgnal);
     DDX_Control(pDX, IDC_SLIDER_MAIN, m_SLider);
     DDX_Control(pDX, IDC_CHECK_DOTS_LINES, m_ShowLines);
+    DDX_Control(pDX, IDC_STATIC_FQ1, m_Period1);
+    DDX_Control(pDX, IDC_STATIC_FQ2, m_Period2);
+    DDX_Control(pDX, IDC_STATIC_FQ3, m_Period3);
+    DDX_Control(pDX, IDC_STATIC_FQ4, m_Period4);
+    DDX_Control(pDX, IDC_STATIC_FQ5, m_Period5);
+    DDX_Control(pDX, IDC_STATIC_FQ6, m_Period6);
+    DDX_Control(pDX, IDC_STATIC_1_MAX, m_1_max);
+    DDX_Control(pDX, IDC_STATIC_1_MID, m_1_mid);
+    DDX_Control(pDX, IDC_STATIC_1_MIN, m_1_min);
+    DDX_Control(pDX, IDC_STATIC_2_MAX, m_2_max);
+    DDX_Control(pDX, IDC_STATIC_2_MID, m_2_mid);
+    DDX_Control(pDX, IDC_STATIC_2_MIN, m_2_min);
+    DDX_Control(pDX, ID_NEXT, m_Next);
+    DDX_Control(pDX, IDC_BUTTONRUN, m_Run);
+    DDX_Control(pDX, IDC_LIST_SCALE, m_YScale);
 }
 
 BEGIN_MESSAGE_MAP(CpulseMonitorDlg, CDialogEx)
@@ -94,6 +111,10 @@ BEGIN_MESSAGE_MAP(CpulseMonitorDlg, CDialogEx)
     ON_WM_TIMER()
     ON_BN_CLICKED(IDC_CHECK_LAST, &CpulseMonitorDlg::OnBnClickedCheckLast)
     ON_BN_CLICKED(IDC_CHECK_DOTS_LINES, &CpulseMonitorDlg::OnBnClickedCheckDotsLines)
+    ON_STN_CLICKED(IDC_STATIC_1_MAX, &CpulseMonitorDlg::OnStnClickedStatic1Max)
+    ON_BN_CLICKED(ID_NEXT, &CpulseMonitorDlg::OnBnClickedNext)
+    ON_BN_CLICKED(IDC_BUTTONRUN, &CpulseMonitorDlg::OnBnClickedButtonrun)
+    ON_LBN_SELCHANGE(IDC_LIST_SCALE, &CpulseMonitorDlg::OnLbnSelchangeListScale)
 END_MESSAGE_MAP()
 
 
@@ -101,6 +122,7 @@ END_MESSAGE_MAP()
     LPHWAVEIN m_hWaveIn;
     BOOL fInsideCallBack = FALSE;
     WAVEHDR WAVEHDRMain;
+    WAVEHDR WAVEHDRMainRead;
 //#define SAMPLES_PER_SEC 44100
 #define SAMPLES_PER_SEC 250000
 #define NUMBER_OF_CHANNELS 2
@@ -109,6 +131,8 @@ END_MESSAGE_MAP()
 
 	char BUFERSND1_0[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2];
     char BUFERSND1_1[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2];
+
+    char BUFERREAD[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2];
 	BOOL DOStop =  FALSE;
 	WAVEHDR WaveHdr_0;
     WAVEHDR WaveHdr_1;
@@ -119,6 +143,8 @@ END_MESSAGE_MAP()
     int g_i2Max = 128*256;
     int g_i1Min = -128*256;
     int g_i2Min = -128*256;
+    int g_i1Mid;
+    int g_i2Mid;
 
 // CpulseMonitorDlg message handlers
 #include "JPEGLIB.H"
@@ -145,6 +171,42 @@ unsigned char PiCRGB[3] = {0x00,0x00,0x00};
 unsigned char PiCRGBGray[3] = {0x80,0x80,0x80};
 unsigned char PiCRGBBlue[3] = {0x00,0x00,0xFF};
 
+char szOutPutREcording[_MAX_PATH]={"record.apuls"};
+FILE *MyOutPutFIle = NULL;
+BOOL flRecordOpenedForWrite;
+int old_check_box_status = 1;
+typedef struct Measurement
+{
+    int NearBody;
+    int TypeOfmesaure;
+
+    long double T; // time of measure
+    long double TError; // time measurement error (s)
+    long double px, jy, P0, P119;
+    char szN[_MAX_PATH];
+} MEASUREMENT, *PMEASUREMENT;
+
+int iMaxMeasures = 0;
+#define MAX_PULSARS_TO_PROCESS 20
+GLOBAL_VARIABLE MEASUREMENT pulsars_over_head[MAX_PULSARS_TO_PROCESS];
+
+typedef struct WriteStruct
+{
+    DWORD Signature;
+    int iCountofVisiblePulsars;
+    SYSTEMTIME myShowSysTime;
+    MEASUREMENT pulsars_over_head[MAX_PULSARS_TO_PROCESS];
+    long long llSizeOfThebuffer;
+} WRITE_STRUCT, *PWRITE_STRUCT;
+
+WRITE_STRUCT OUtPutPulseStruct;
+
+WRITE_STRUCT ReadPulseStruct;
+
+
+__int64  g_reacordMAxSize;
+__int64  g_reacordCurPos;
+int ICOuntofOutOnScreen =0;
 void putpixel(unsigned char *bRGB, int X, int Y)
 {
     int iRow = (X) + (bRGBImageH - (Y))*bRGBImageW-1;
@@ -158,6 +220,11 @@ LRESULT CALLBACK AudioStreamCallback(HWND hwndC,LPWAVEHDR lpWAVEHDR)
 {
 
     int iSize = format.wf.nBlockAlign;
+    if (!flRecordOpenedForWrite)
+    {
+        if (hwndC != NULL)
+            return(0);
+    }
     int iPoints = bRGBImageW/g_SecondsPerScreen;
     int i1SecRep = lpWAVEHDR->dwBufferLength/ iPoints;
     int iCurmsc = 0;
@@ -194,6 +261,8 @@ LRESULT CALLBACK AudioStreamCallback(HWND hwndC,LPWAVEHDR lpWAVEHDR)
 
     int i1Mid = (g_i1Min+g_i1Max)/2;
     int i2Mid = (g_i2Min+g_i2Max)/2;
+    g_i1Mid =  i1Mid;
+    g_i2Mid =  i2Mid;
     int i1M = (g_i1Max-g_i1Min);
     int i2M = (g_i2Max-g_i2Min);
 
@@ -214,6 +283,19 @@ LRESULT CALLBACK AudioStreamCallback(HWND hwndC,LPWAVEHDR lpWAVEHDR)
         //    break;
     }
     g_isecond++;
+    if (MyOutPutFIle != NULL)
+    {
+        if (flRecordOpenedForWrite)  // record observed period
+        {
+            OUtPutPulseStruct.llSizeOfThebuffer = lpWAVEHDR->dwBufferLength;
+            fwrite(&OUtPutPulseStruct, sizeof(OUtPutPulseStruct), 1, MyOutPutFIle);
+            fwrite(lpWAVEHDR->lpData, lpWAVEHDR->dwBufferLength, 1, MyOutPutFIle);
+        }
+        else                         // read observation 
+        {
+        }
+    }
+
 	return(0);
 }
 SYSTEMTIME mySYsTime;
@@ -255,7 +337,7 @@ void CALLBACK waveInProc(  HWAVEIN hwi, UINT uMsg, DWORD dwInstance, DWORD dwPar
         WAVEHDRMain.dwLoops = pWaveHdr->dwLoops;
         WAVEHDRMain.reserved =pWaveHdr->reserved;
         
-		AudioStreamCallback(NULL,&WAVEHDRMain);
+		AudioStreamCallback((HWND)-1,&WAVEHDRMain);
 		fInsideCallBack = FALSE;
 	}
 }
@@ -357,6 +439,283 @@ void StopWAVCapture(void)
     memset(bRGBImage, 0xff, sizeof(bRGBImage));
 }
 
+FILE *g_fInputReadUrlOrFile; 
+char g_szXMLFileName[_MAX_PATH*3]={"trasimoutput.xml"};
+int GetFileString(char *_szXMLFileName, char *_szLocalFileName, int FileStatusFlag, char *szString, int sizeof_szString)
+{
+    if (FileStatusFlag == 0) // that is OPEN operation
+    {
+        /*
+        if (strstr(_szXMLFileName,"http://"))
+        {
+            // needs to copy original http file from server to a local with temporary name, than process temporary
+            char szURLFileName[3*_MAX_PATH];
+            char szURLServer[3*_MAX_PATH];
+            char sztempFileName[3*_MAX_PATH];
+            char szWebServerResp[8096];
+            int UrlPort=80;
+       	    CHttpConnection* m_MainHttpServer = NULL;
+    	    CInternetSession  *m_MainInternetConnection = NULL;
+
+            if (ParsURL(szURLServer, &UrlPort, szURLFileName, _szXMLFileName))
+            {
+                //strcpy(_szXMLFileName, _szLocalFileName);
+            }
+            else
+            {
+                printf("\n file %s was wrongly parsed",_szXMLFileName);
+                return 3;
+            }
+            if (m_MainHttpServer == NULL)
+	        {
+                m_MainInternetConnection = new CInternetSession("SessionToControlServer",12,INTERNET_OPEN_TYPE_DIRECT,NULL, // proxi name
+				            NULL, // proxi bypass
+				            INTERNET_FLAG_DONT_CACHE|INTERNET_FLAG_TRANSFER_BINARY);
+		        try
+		        {
+                    m_MainHttpServer = 	m_MainInternetConnection->GetHttpConnection( szURLServer, 0, UrlPort, NULL, NULL );
+    		    }
+	    	    catch(CInternetException *e)
+		        {
+                    m_MainHttpServer = NULL;
+                    printf("\n file %s failure to open (no intenet connection)", _szXMLFileName);
+                    return 1;
+		        }
+	        }
+	        if (m_MainHttpServer)
+	        {
+                CHttpFile* myCHttpFile = NULL;
+			    try
+			    {
+                    myCHttpFile = m_MainHttpServer->OpenRequest( CHttpConnection::HTTP_VERB_GET,
+					    szURLFileName,
+					    NULL,//((CGrStnApp*)AfxGetApp())->szLoginRQ,
+					    NULL,//12345678,
+					    NULL, 
+					    NULL, 
+					    INTERNET_FLAG_EXISTING_CONNECT|
+					    INTERNET_FLAG_DONT_CACHE|
+					    INTERNET_FLAG_RELOAD );
+			    }
+			    catch(CInternetException *e)
+			    {
+                    m_MainHttpServer->Close();
+                    printf("\n file %s failure to open", _szXMLFileName);
+                    return 1;
+			    }
+
+			    if (myCHttpFile !=NULL)
+			    {
+                    try
+				    {
+					    myCHttpFile->SendRequest();
+					    memset(szWebServerResp, 0, sizeof(szWebServerResp));
+                        DWORD dwSize;
+                        CString strSize;
+                        myCHttpFile->QueryInfo(HTTP_QUERY_CONTENT_LENGTH,strSize);
+                        dwSize = atoi(strSize.GetString());
+                        FILE *TempFile = fopen(_szLocalFileName, "wb");
+                        if (TempFile)
+                        {
+                            if (dwSize > (sizeof(szWebServerResp)-1))
+                            {
+                                for (DWORD dwread=0; dwread < dwSize; dwread+= (sizeof(szWebServerResp)-1))
+                                {
+                                    if ((dwSize - dwread) > (sizeof(szWebServerResp)-1))
+                                    {
+                                        if (myCHttpFile->Read(&szWebServerResp,(sizeof(szWebServerResp)-1)))
+                                        {
+                                            fwrite(&szWebServerResp,(sizeof(szWebServerResp)-1),1,TempFile);
+                                        }
+
+                                    }
+                                    else
+                                    {
+                                        if (myCHttpFile->Read(&szWebServerResp,(dwSize - dwread)))
+                                        {
+                                            fwrite(&szWebServerResp,(dwSize - dwread),1,TempFile);
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if (myCHttpFile->Read(&szWebServerResp,dwSize))
+                                {
+                                    fwrite(&szWebServerResp,dwSize,1,TempFile);
+                                }
+                            }
+                            fclose(TempFile);
+                        }
+                        else
+                        {
+                            printf("\n file %s failure to write into %s", _szXMLFileName,_szLocalFileName);
+                        }
+                    }
+                    catch(CInternetException *e)
+                    {
+                        myCHttpFile->Close();
+                        m_MainHttpServer->Close();
+                        m_MainInternetConnection->Close();
+					    //ptrApp->m_MainHttpServer = NULL;
+                        printf("\n file %s failure to read", _szXMLFileName);
+                        return 3;
+				    }
+                    myCHttpFile->Close();
+				    delete myCHttpFile;
+                }
+                else
+                {
+                    m_MainHttpServer->Close();
+                    m_MainInternetConnection->Close();
+                    //ptrApp->m_MainHttpServer = NULL;
+                    printf("\n file %s failure to read", _szXMLFileName);
+                    return 3;
+                }
+                m_MainHttpServer->Close();
+                m_MainInternetConnection->Close();
+            }
+            else
+            {
+                m_MainInternetConnection->Close();
+                //ptrApp->m_MainHttpServer = NULL;
+                printf("\n file %s failure to open", _szXMLFileName);
+                return 3;
+            }
+            fInputReadUrlOrFile = fopen(_szLocalFileName, "r");
+            if (fInputReadUrlOrFile != NULL)
+            {
+                //fclose(fInputReadUrlOrFile);
+                return 0;
+            }
+            else
+            {
+                printf("\n file %s missing", _szLocalFileName);
+                return 3;
+            }
+        }
+        else*/
+        {
+            g_fInputReadUrlOrFile = fopen(_szXMLFileName, "r");
+            if (g_fInputReadUrlOrFile != NULL)
+            {
+                return 0;
+            }
+            else
+            {
+                printf("\n file %s missing", _szLocalFileName);
+                return 3;
+            }
+        }
+    }
+    if (FileStatusFlag == 1) // that is READ/CLOSE operation
+    {
+        if (g_fInputReadUrlOrFile != NULL)
+        {
+            if (fgets(szString, sizeof_szString-1, g_fInputReadUrlOrFile) != NULL)
+            {
+                return 0;
+            }
+            else  // end of the file reached
+            {
+                fclose(g_fInputReadUrlOrFile);
+                return 1;
+            }
+
+        }
+        else
+        {
+            return 2;
+        }
+    }
+    return 66;
+}
+
+void ParamCommon(char *szString)
+{
+    XML_BEGIN;
+    XML_SECTION(pulsars_over_head)
+	//<hPULSARmeasure>
+	// <M>2</M>
+	//	<T>+2.45716069811568270e+006</T>
+	//	<N>B1133+16</N>
+	//	<px>+1.18791306593600000e+000</px>
+	//	<jy>257.000000</jy>
+	//	<P0>+1.18801646317793200E+000</P0>
+	//	<P119>+1.42561976218221530E+002</P119>
+	// <E>+1.00000000000000000e+000</E>
+	//</hPULSARmeasure>
+
+    XML_SECTION_GROUP_SEPARATOR
+    
+    XML_GROUP(hPULSARmeasure)
+        IF_XML_ELEMENT(T)
+        {
+            if (++iMaxMeasures>MAX_PULSARS_TO_PROCESS)
+                iMaxMeasures--;
+            pulsars_over_head[iMaxMeasures-1].T = atof(pszQuo);;
+        }
+        IF_XML_ELEMENT(N)
+        {
+            strcpy(pulsars_over_head[iMaxMeasures-1].szN,pszQuo);
+            if (strchr(pulsars_over_head[iMaxMeasures-1].szN, '<'))
+                *strchr(pulsars_over_head[iMaxMeasures-1].szN, '<')=0;
+        }
+        IF_XML_ELEMENT(px)
+        {
+            pulsars_over_head[iMaxMeasures-1].px =atof(pszQuo);
+        }
+        IF_XML_ELEMENT(jy)
+        {
+            pulsars_over_head[iMaxMeasures-1].jy =atof(pszQuo);
+        }
+        IF_XML_ELEMENT(P0)
+        {
+            pulsars_over_head[iMaxMeasures-1].P0 =atof(pszQuo);
+        }
+        IF_XML_ELEMENT(P119)
+        {
+            pulsars_over_head[iMaxMeasures-1].P119 =atof(pszQuo);
+        }
+    XML_GROUP_END
+
+    XML_SECTION_END;
+
+    XML_END;
+}
+void ParamDoAll(FILE *fInput)
+{
+    char szString[1024];
+    char *pszQuo;
+    char *pszQuo2;
+    // default section:
+    strcpy(szSection, "pulsars_over_head");
+    while(fgets(szString, sizeof(szString) -1, fInput))
+    {
+        if (strstr(szString, "TRA:section") != NULL)
+        {
+            if ((pszQuo = strstr(szString, "name=\"")) != NULL)
+            {
+                strcpy(szSection, pszQuo + sizeof("name=\"") - 1);
+                if ((pszQuo2 = strchr(szSection, '\"')) != 0)
+                    *pszQuo2 = 0;
+            }
+        }
+        ParamCommon(szString);
+    }
+}
+
+void GetCurentPulsarsData(void)
+{
+    g_fInputReadUrlOrFile = NULL;
+    iMaxMeasures = 0;
+    if (GetFileString(g_szXMLFileName, "_trasimoutput_.xml", 0, NULL, 0) == 0) // open was successfull fInputReadUrlOrFile is a handler
+    {
+        ParamDoAll(g_fInputReadUrlOrFile);
+        fclose(g_fInputReadUrlOrFile);
+        g_fInputReadUrlOrFile = NULL;
+    }
+}
 BOOL CpulseMonitorDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
@@ -410,6 +769,72 @@ BOOL CpulseMonitorDlg::OnInitDialog()
     m_SecPerScreen.AddString("256 sec");
     m_SecPerScreen.AddString("512 sec");
     m_SecPerScreen.SetCurSel(10);
+
+    m_YScale.AddString("avrg");
+    m_YScale.AddString("1024");
+    m_YScale.AddString("512");
+    m_YScale.AddString("256");
+    m_YScale.AddString("128");
+    m_YScale.AddString("64");
+    m_YScale.AddString("32");
+
+    m_YScale.SetCurSel(0);
+    memset(&OUtPutPulseStruct, 0, sizeof(OUtPutPulseStruct));
+    memset(&pulsars_over_head, 0, sizeof(pulsars_over_head));
+    OUtPutPulseStruct.Signature = 0x01020304;
+    OUtPutPulseStruct.iCountofVisiblePulsars = 0;
+    flRunningRecording = FALSE;
+    //
+    GetCurentPulsarsData();
+    if (iMaxMeasures)
+    {
+        char szText[_MAX_PATH];
+        
+        // pulsars on top of head
+        OUtPutPulseStruct.iCountofVisiblePulsars = iMaxMeasures;
+        for (int i = 0; i < OUtPutPulseStruct.iCountofVisiblePulsars; i++)
+        {
+            OUtPutPulseStruct.pulsars_over_head[i].NearBody = pulsars_over_head[i].NearBody;
+            OUtPutPulseStruct.pulsars_over_head[i].T = pulsars_over_head[i].T;
+            OUtPutPulseStruct.pulsars_over_head[i].px = pulsars_over_head[i].px;
+            OUtPutPulseStruct.pulsars_over_head[i].jy = pulsars_over_head[i].jy;
+            strcpy(OUtPutPulseStruct.pulsars_over_head[i].szN, pulsars_over_head[i].szN);
+            OUtPutPulseStruct.pulsars_over_head[i].P0 = pulsars_over_head[i].P0;
+            OUtPutPulseStruct.pulsars_over_head[i].P119 = pulsars_over_head[i].P119;
+            switch(i)
+            {
+            case 0: sprintf(szText, "%s %1.3f (%d)",OUtPutPulseStruct.pulsars_over_head[i].szN, 
+                        OUtPutPulseStruct.pulsars_over_head[i].px, (int)OUtPutPulseStruct.pulsars_over_head[i].jy);
+                m_Period1.SetWindowTextA(szText);break;
+            case 1: sprintf(szText, "%s %1.3f (%d)",OUtPutPulseStruct.pulsars_over_head[i].szN, 
+                        OUtPutPulseStruct.pulsars_over_head[i].px, (int)OUtPutPulseStruct.pulsars_over_head[i].jy);
+                m_Period2.SetWindowTextA(szText);break;
+            case 2: sprintf(szText, "%s %1.3f (%d)",OUtPutPulseStruct.pulsars_over_head[i].szN, 
+                        OUtPutPulseStruct.pulsars_over_head[i].px, (int)OUtPutPulseStruct.pulsars_over_head[i].jy); 
+                m_Period3.SetWindowTextA(szText);break;
+
+            case 3: sprintf(szText, "%s %1.3f (%d)",OUtPutPulseStruct.pulsars_over_head[i].szN, 
+                        OUtPutPulseStruct.pulsars_over_head[i].px, (int)OUtPutPulseStruct.pulsars_over_head[i].jy); 
+                m_Period4.SetWindowTextA(szText);break;
+            case 4: sprintf(szText, "%s %1.3f (%d)",OUtPutPulseStruct.pulsars_over_head[i].szN, 
+                        OUtPutPulseStruct.pulsars_over_head[i].px, (int)OUtPutPulseStruct.pulsars_over_head[i].jy); 
+                m_Period5.SetWindowTextA(szText);break;
+            case 5: sprintf(szText, "%s %1.3f (%d)",OUtPutPulseStruct.pulsars_over_head[i].szN, 
+                        OUtPutPulseStruct.pulsars_over_head[i].px, (int)OUtPutPulseStruct.pulsars_over_head[i].jy); 
+                m_Period6.SetWindowTextA(szText);break;
+
+            }
+        }
+    }
+    {
+        char szText[_MAX_PATH];
+        sprintf(szText, "%d", g_i1Max); m_1_max.SetWindowTextA(szText);
+        sprintf(szText, "%d", g_i1Min); m_1_min.SetWindowTextA(szText);
+        sprintf(szText, "%d", g_i1Mid); m_1_mid.SetWindowTextA(szText);
+        sprintf(szText, "%d", g_i2Max); m_2_max.SetWindowTextA(szText);
+        sprintf(szText, "%d", g_i2Min); m_2_min.SetWindowTextA(szText);
+        sprintf(szText, "%d", g_i2Mid); m_2_mid.SetWindowTextA(szText);
+    }
     m_FractionsPerScreen = 1;
     g_FractionsPerScreen = m_FractionsPerScreen;
     m_SecondsPerScreen = 1;
@@ -419,14 +844,36 @@ BOOL CpulseMonitorDlg::OnInitDialog()
     memset(bRGBImage, 0xff, sizeof(bRGBImage));
     //SYSTEMTIME mySYsTime;
     GetLocalTime(&mySYsTime);
+    memcpy(&OUtPutPulseStruct.myShowSysTime, &mySYsTime, sizeof(OUtPutPulseStruct.myShowSysTime));
     
     CTime MyTime = CTime(mySYsTime);
 
     m_Time.SetTime(&MyTime);
     m_Date.SetTime(&MyTime);
+
+    old_check_box_status = 1;
     m_LastTime.SetCheck(1);
+
+    if (m_LastTime.GetCheck()) // that is record operation
+    {
+        MyOutPutFIle = fopen(szOutPutREcording, "ab");
+        if (MyOutPutFIle!=NULL)
+        {
+            flRecordOpenedForWrite = TRUE;
+        }
+    }
+    else                       //that is view recording
+    {
+        MyOutPutFIle = fopen(szOutPutREcording, "rb");
+        if (MyOutPutFIle!=NULL)
+        {
+            flRecordOpenedForWrite = FALSE;
+        }
+    }
+
     m_ShowLines.SetCheck(0);
-    SetTimer(901,1000,NULL);
+    SetTimer(901, 1000,NULL);
+    SetTimer(902,60500,NULL);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -497,10 +944,13 @@ BOOL CpulseMonitorDlg::DestroyWindow()
 {
     // TODO: Add your specialized code here and/or call the base class
     KillTimer(901);
+    KillTimer(902);
     if (hBmpMainSignal!=NULL)
         DeleteObject(hBmpMainSignal);
 
     StopWAVCapture();
+    if (MyOutPutFIle != NULL)
+        fclose(MyOutPutFIle);
     return CDialogEx::DestroyWindow();
 }
 
@@ -533,6 +983,8 @@ void CpulseMonitorDlg::OnLbnSelchangeListSecPerScreen()
     }
     g_SecondsPerScreen = m_SecondsPerScreen;
     g_FractionsPerScreen = m_FractionsPerScreen;
+    g_isecond = 1024;
+    ICOuntofOutOnScreen = 0;
 }
 
 
@@ -555,6 +1007,7 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
         {
             myShowSysTime = mySYsTime;
             CTime MyTime = CTime(myShowSysTime);
+            memcpy(&OUtPutPulseStruct.myShowSysTime,&myShowSysTime, sizeof(OUtPutPulseStruct.myShowSysTime));
 
             m_Time.SetTime(&MyTime);
             m_Date.SetTime(&MyTime);
@@ -600,6 +1053,79 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
         m_SIgnal.GetWindowRect(&myRect);
         m_SIgnal.ValidateRect(&myRect);
         m_SIgnal.UpdateWindow();
+        {
+            char szText[_MAX_PATH];
+            sprintf(szText, "%d", g_i1Max); m_1_max.SetWindowTextA(szText);
+            sprintf(szText, "%d", g_i1Min); m_1_min.SetWindowTextA(szText);
+            sprintf(szText, "%d", g_i1Mid); m_1_mid.SetWindowTextA(szText);
+            sprintf(szText, "%d", g_i2Max); m_2_max.SetWindowTextA(szText);
+            sprintf(szText, "%d", g_i2Min); m_2_min.SetWindowTextA(szText);
+            sprintf(szText, "%d", g_i2Mid); m_2_mid.SetWindowTextA(szText);
+        }
+        if (flRecordOpenedForWrite == FALSE) // that is tickingt timer and needs to show all switch of the data on the screen
+        {
+            if (MyOutPutFIle != NULL)
+            {
+                if (flRunningRecording)
+                {
+                    if (ICOuntofOutOnScreen >= g_SecondsPerScreen)
+                        ICOuntofOutOnScreen = 0;
+                }
+                while (ICOuntofOutOnScreen++ < g_SecondsPerScreen)
+                {
+                    ReadPulseStruct.Signature = 0;
+                    while(ReadPulseStruct.Signature != 0x01020304)
+                    {
+                        __int64  reacordCurPos = _ftelli64(MyOutPutFIle);
+                        if (sizeof(ReadPulseStruct) == fread(&ReadPulseStruct, sizeof(ReadPulseStruct), 1, MyOutPutFIle))
+                        {
+                            break;
+                        }
+                        if (ReadPulseStruct.Signature == 0x01020304)
+                            break;
+                        reacordCurPos +=1;
+                        _fseeki64(MyOutPutFIle, reacordCurPos, SEEK_SET);
+                    }
+                    if (ReadPulseStruct.Signature == 0x01020304)
+                    {
+                        if (ReadPulseStruct.llSizeOfThebuffer == sizeof(BUFERREAD))
+                        {
+                            WAVEHDRMainRead.dwBufferLength = sizeof(BUFERREAD);
+                            WAVEHDRMainRead.lpData = BUFERREAD; // is it first buffer?
+                            size_t imySize = fread(&BUFERREAD, WAVEHDRMainRead.dwBufferLength, 1, MyOutPutFIle);
+                            if (1 == imySize)
+                            {
+                                AudioStreamCallback(NULL,&WAVEHDRMainRead);
+                                g_reacordCurPos = _ftelli64(MyOutPutFIle);
+                                CTime MyTime = CTime(ReadPulseStruct.myShowSysTime);
+                                m_Time.SetTime(&MyTime);
+                                m_Date.SetTime(&MyTime);
+                                m_SLider.SetPos((m_SLider.GetRangeMax()* g_reacordCurPos)/g_reacordMAxSize);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    else if (nIDEvent== 902)
+    {
+        GetCurentPulsarsData();
+        if (iMaxMeasures)
+        {
+            // pulsars on top of head
+            OUtPutPulseStruct.iCountofVisiblePulsars = iMaxMeasures;
+            for (int i = 0; i < OUtPutPulseStruct.iCountofVisiblePulsars; i++)
+            {
+                OUtPutPulseStruct.pulsars_over_head[i].NearBody = pulsars_over_head[i].NearBody;
+                OUtPutPulseStruct.pulsars_over_head[i].T = pulsars_over_head[i].T;
+                OUtPutPulseStruct.pulsars_over_head[i].px = pulsars_over_head[i].px;
+                strcpy(OUtPutPulseStruct.pulsars_over_head[i].szN, pulsars_over_head[i].szN);
+                OUtPutPulseStruct.pulsars_over_head[i].P0 = pulsars_over_head[i].P0;
+                OUtPutPulseStruct.pulsars_over_head[i].P119 = pulsars_over_head[i].P119;
+            }
+        }
+
     }
     CDialogEx::OnTimer(nIDEvent);
 }
@@ -609,11 +1135,104 @@ void CpulseMonitorDlg::OnBnClickedCheckLast()
 {
     // TODO: Add your control notification handler code here
 
-    //m_LastTime.SetCheck(0)
+    int iCheckBoxnow = m_LastTime.GetCheck();
+    if (iCheckBoxnow != old_check_box_status)
+    {
+        if (old_check_box_status == 1) // was recording
+        {
+            while(fInsideCallBack)
+            {
+                Sleep(100);
+            }
+            fclose(MyOutPutFIle);
+            MyOutPutFIle = NULL;
+            {
+                MyOutPutFIle = fopen(szOutPutREcording, "rb");
+                if (MyOutPutFIle!=NULL)    // reading old recordings
+                {
+                    flRecordOpenedForWrite = FALSE;
+                    _fseeki64( MyOutPutFIle, 0, SEEK_END);
+                    g_reacordMAxSize = _ftelli64(MyOutPutFIle);
+                    g_reacordCurPos = 0;
+                    _fseeki64( MyOutPutFIle, g_reacordCurPos, SEEK_SET);
+                    m_Next.EnableWindow(1);
+                    m_Run.EnableWindow(1);
+                    g_isecond = 1024;
+                    ICOuntofOutOnScreen =0;
+                    
+                    m_SLider.SetPos((m_SLider.GetRangeMax()* g_reacordCurPos)/g_reacordMAxSize);
+                }
+            }
+        }
+        else // was reading
+        {
+            fclose(MyOutPutFIle);
+            MyOutPutFIle = NULL;
+            if (m_LastTime.GetCheck()) // that is record operation
+            {
+                MyOutPutFIle = fopen(szOutPutREcording, "ab");
+                if (MyOutPutFIle!=NULL)    // continue read
+                {
+                    flRecordOpenedForWrite = TRUE;
+                    m_Next.EnableWindow(1);
+                    m_Run.EnableWindow(1);
+                }
+            }
+        }
+    }
 }
 
 
 void CpulseMonitorDlg::OnBnClickedCheckDotsLines()
 {
     // TODO: Add your control notification handler code here
+
+}
+
+
+void CpulseMonitorDlg::OnStnClickedStatic1Max()
+{
+    // TODO: Add your control notification handler code here
+}
+
+
+void CpulseMonitorDlg::OnBnClickedNext()
+{
+    // TODO: Add your control notification handler code here
+    ICOuntofOutOnScreen = 0;
+}
+
+
+void CpulseMonitorDlg::OnBnClickedButtonrun()
+{
+    // TODO: Add your control notification handler code here
+    if (flRunningRecording == FALSE)
+    {
+        flRunningRecording = TRUE;
+        m_Run.SetWindowTextA("stp");
+    }
+    else
+    {
+        flRunningRecording = FALSE;
+        m_Run.SetWindowTextA("run");
+    }
+    
+}
+
+
+void CpulseMonitorDlg::OnLbnSelchangeListScale()
+{
+    // TODO: Add your control notification handler code here
+    switch(m_YScale.GetCurSel())
+    {
+    case 0:break;
+    case 1:  g_i1Max = g_i1Mid + 1024; g_i2Max = g_i2Mid + 1024; g_i1Min = g_i1Mid - 1024; g_i2Min = g_i2Mid - 1024;break;
+    case 2:  g_i1Max = g_i1Mid + 512;  g_i2Max = g_i2Mid + 512;  g_i1Min = g_i1Mid - 512;  g_i2Min = g_i2Mid - 512;break;
+    case 3:  g_i1Max = g_i1Mid + 256;  g_i2Max = g_i2Mid + 256;  g_i1Min = g_i1Mid - 256;  g_i2Min = g_i2Mid - 256;break;
+    case 4:  g_i1Max = g_i1Mid + 128;  g_i2Max = g_i2Mid + 128;  g_i1Min = g_i1Mid - 128;  g_i2Min = g_i2Mid - 128;break;
+    case 5:  g_i1Max = g_i1Mid + 64;   g_i2Max = g_i2Mid + 64;   g_i1Min = g_i1Mid - 64;   g_i2Min = g_i2Mid - 64;break;
+    case 6:  g_i1Max = g_i1Mid + 32;   g_i2Max = g_i2Mid + 21;   g_i1Min = g_i1Mid - 32;   g_i2Min = g_i2Mid - 32;break;
+    }
+    if (flRunningRecording)
+        ICOuntofOutOnScreen = 0;
 }
