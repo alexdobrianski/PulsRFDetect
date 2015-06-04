@@ -99,6 +99,7 @@ void CpulseMonitorDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, ID_NEXT, m_Next);
     DDX_Control(pDX, IDC_BUTTONRUN, m_Run);
     DDX_Control(pDX, IDC_LIST_SCALE, m_YScale);
+    DDX_Control(pDX, IDC_EDIT_LOCAL_FILE, m_LocalFile);
 }
 
 BEGIN_MESSAGE_MAP(CpulseMonitorDlg, CDialogEx)
@@ -115,6 +116,7 @@ BEGIN_MESSAGE_MAP(CpulseMonitorDlg, CDialogEx)
     ON_BN_CLICKED(ID_NEXT, &CpulseMonitorDlg::OnBnClickedNext)
     ON_BN_CLICKED(IDC_BUTTONRUN, &CpulseMonitorDlg::OnBnClickedButtonrun)
     ON_LBN_SELCHANGE(IDC_LIST_SCALE, &CpulseMonitorDlg::OnLbnSelchangeListScale)
+    ON_BN_CLICKED(IDC_BUTTON_SELECT_FILE, &CpulseMonitorDlg::OnBnClickedButtonSelectFile)
 END_MESSAGE_MAP()
 
 
@@ -851,11 +853,12 @@ BOOL CpulseMonitorDlg::OnInitDialog()
     m_Time.SetTime(&MyTime);
     m_Date.SetTime(&MyTime);
 
-    old_check_box_status = 1;
-    m_LastTime.SetCheck(1);
+    old_check_box_status = 0;
+    m_LastTime.SetCheck(old_check_box_status);
 
     if (m_LastTime.GetCheck()) // that is record operation
     {
+        m_LastTime.SetWindowTextA("stop");
         MyOutPutFIle = fopen(szOutPutREcording, "ab");
         if (MyOutPutFIle!=NULL)
         {
@@ -864,6 +867,7 @@ BOOL CpulseMonitorDlg::OnInitDialog()
     }
     else                       //that is view recording
     {
+        m_LastTime.SetWindowTextA("record");
         MyOutPutFIle = fopen(szOutPutREcording, "rb");
         if (MyOutPutFIle!=NULL)
         {
@@ -874,6 +878,7 @@ BOOL CpulseMonitorDlg::OnInitDialog()
     m_ShowLines.SetCheck(0);
     SetTimer(901, 1000,NULL);
     SetTimer(902,60500,NULL);
+    m_LocalFile.SetWindowTextA(szOutPutREcording);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -1130,21 +1135,14 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
     CDialogEx::OnTimer(nIDEvent);
 }
 
-
-void CpulseMonitorDlg::OnBnClickedCheckLast()
+void CpulseMonitorDlg::SetRead()
 {
-    // TODO: Add your control notification handler code here
-
-    int iCheckBoxnow = m_LastTime.GetCheck();
-    if (iCheckBoxnow != old_check_box_status)
-    {
-        if (old_check_box_status == 1) // was recording
-        {
             while(fInsideCallBack)
             {
                 Sleep(100);
             }
-            fclose(MyOutPutFIle);
+            if (MyOutPutFIle)
+                fclose(MyOutPutFIle);
             MyOutPutFIle = NULL;
             {
                 MyOutPutFIle = fopen(szOutPutREcording, "rb");
@@ -1163,10 +1161,13 @@ void CpulseMonitorDlg::OnBnClickedCheckLast()
                     m_SLider.SetPos((m_SLider.GetRangeMax()* g_reacordCurPos)/g_reacordMAxSize);
                 }
             }
-        }
-        else // was reading
+            m_LastTime.SetWindowTextA("record");
+}
+void CpulseMonitorDlg::SetWrite()
+{
         {
-            fclose(MyOutPutFIle);
+            if (MyOutPutFIle)
+                fclose(MyOutPutFIle);
             MyOutPutFIle = NULL;
             if (m_LastTime.GetCheck()) // that is record operation
             {
@@ -1178,7 +1179,27 @@ void CpulseMonitorDlg::OnBnClickedCheckLast()
                     m_Run.EnableWindow(1);
                 }
             }
+            m_LastTime.SetWindowTextA("stop");
         }
+
+}
+
+void CpulseMonitorDlg::OnBnClickedCheckLast()
+{
+    // TODO: Add your control notification handler code here
+
+    int iCheckBoxnow = m_LastTime.GetCheck();
+    if (iCheckBoxnow != old_check_box_status)
+    {
+        if (old_check_box_status == 1) // was recording
+        {
+            SetRead();
+        }
+        else // was reading
+        {
+            SetWrite();
+        }
+        old_check_box_status = iCheckBoxnow;
     }
 }
 
@@ -1235,4 +1256,33 @@ void CpulseMonitorDlg::OnLbnSelchangeListScale()
     }
     if (flRunningRecording)
         ICOuntofOutOnScreen = 0;
+}
+
+
+void CpulseMonitorDlg::OnBnClickedButtonSelectFile()
+{
+    // TODO: Add your control notification handler code here
+    CFileDialog dlg(FALSE, _T("apuls"), _T("*.apuls"), 0);//OFN_OVERWRITEPROMPT);
+    if(dlg.DoModal() == IDOK)
+    {
+        CString KeyFileName;
+        CStringA KeyFileNameA;
+        POSITION fileNamesPosition  = dlg.GetStartPosition();
+        if (fileNamesPosition != NULL)
+        {
+            KeyFileName = dlg.GetNextPathName(fileNamesPosition);
+            KeyFileNameA = (CStringA)KeyFileName;
+            strcpy(szOutPutREcording, KeyFileNameA.GetString());
+            m_LocalFile.SetWindowTextA(szOutPutREcording);
+            if (old_check_box_status == 1) // was recording
+            {
+                SetWrite();
+            }
+            else // was reading
+            {
+                SetRead();
+            }
+        }
+    }
+
 }

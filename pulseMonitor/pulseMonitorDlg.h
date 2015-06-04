@@ -38,6 +38,8 @@ public:
     SYSTEMTIME myShowSysTime;
     HBITMAP hBmpMainSignal ;
     BOOL flRunningRecording;
+    void SetRead();
+    void SetWrite();
 
 // Implementation
 protected:
@@ -85,4 +87,6 @@ public:
     afx_msg void OnBnClickedButtonrun();
     CListBox m_YScale;
     afx_msg void OnLbnSelchangeListScale();
+    CEdit m_LocalFile;
+    afx_msg void OnBnClickedButtonSelectFile();
 };
