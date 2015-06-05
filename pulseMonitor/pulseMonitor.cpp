@@ -49,9 +49,19 @@ CpulseMonitorApp theApp;
 
 // CpulseMonitorApp initialization
 
+extern char szOutPutREcording[3*_MAX_PATH];
+extern char szModule[3*_MAX_PATH];
 BOOL CpulseMonitorApp::InitInstance()
 {
 	CWinApp::InitInstance();
+    char *pszModule = ::GetCommandLineA();
+    strcpy(szModule, pszModule);
+    if (strrchr(szModule, '\\') != 0)
+        *strrchr(szModule, '\\') =0;
+    strcpy(szOutPutREcording, szModule);
+    strcat(szOutPutREcording, "\\record.apuls");
+    
+    //::GetModuleFileNameA(::GetCurrentProcess(), &szModule[0], sizeof(szModule));
 
 
 	// Create the shell manager, in case the dialog contains

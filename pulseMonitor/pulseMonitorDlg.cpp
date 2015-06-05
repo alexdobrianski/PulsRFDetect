@@ -173,7 +173,20 @@ unsigned char PiCRGB[3] = {0x00,0x00,0x00};
 unsigned char PiCRGBGray[3] = {0x80,0x80,0x80};
 unsigned char PiCRGBBlue[3] = {0x00,0x00,0xFF};
 
-char szOutPutREcording[_MAX_PATH]={"record.apuls"};
+#define IMAGE_W_S 342
+#define IMAGE_H_S 40
+//int RGBReferenceBody = EARTH;
+unsigned char bRGBImage_S1[IMAGE_W_S*IMAGE_H_S*3];
+unsigned char bRGBImage_S2[IMAGE_W_S*IMAGE_H_S*3];
+unsigned char bRGBImage_S3[IMAGE_W_S*IMAGE_H_S*3];
+unsigned char bRGBImage_S4[IMAGE_W_S*IMAGE_H_S*3];
+unsigned char bRGBImage_S5[IMAGE_W_S*IMAGE_H_S*3];
+unsigned char bRGBImage_S6[IMAGE_W_S*IMAGE_H_S*3];
+int bRGBImageW_S = IMAGE_W_S;
+int bRGBImageH_S = IMAGE_H_S;
+
+char szModule[3*_MAX_PATH];
+char szOutPutREcording[3*_MAX_PATH]={"record.apuls"};
 FILE *MyOutPutFIle = NULL;
 BOOL flRecordOpenedForWrite;
 int old_check_box_status = 1;
@@ -215,6 +228,14 @@ void putpixel(unsigned char *bRGB, int X, int Y)
     if ((iRow*3 >=0) && (iRow*3 < (sizeof(bRGBImage) -3)))
     {
         memcpy(&bRGBImage[iRow*3],bRGB, 3);
+    }
+}
+void putpixelS(unsigned char *bRGBImageS,unsigned char *bRGB, int X, int Y)
+{
+    int iRow = (X) + (bRGBImageH_S - (Y))*bRGBImageW_S-1;
+    if ((iRow*3 >=0) && (iRow*3 < (sizeof(bRGBImage_S1) -3)))
+    {
+        memcpy(&bRGBImageS[iRow*3],bRGB, 3);
     }
 }
 // should be no longer than 1 sec 
@@ -721,6 +742,7 @@ void GetCurentPulsarsData(void)
 BOOL CpulseMonitorDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
+    
 
 	// Add "About..." menu item to system menu.
 
@@ -879,6 +901,13 @@ BOOL CpulseMonitorDlg::OnInitDialog()
     SetTimer(901, 1000,NULL);
     SetTimer(902,60500,NULL);
     m_LocalFile.SetWindowTextA(szOutPutREcording);
+
+    memset(bRGBImage_S1, 0xff, sizeof(bRGBImage_S1));
+    memset(bRGBImage_S2, 0xff, sizeof(bRGBImage_S2));
+    memset(bRGBImage_S3, 0xff, sizeof(bRGBImage_S3));
+    memset(bRGBImage_S4, 0xff, sizeof(bRGBImage_S4));
+    memset(bRGBImage_S5, 0xff, sizeof(bRGBImage_S5));
+    memset(bRGBImage_S6, 0xff, sizeof(bRGBImage_S6));
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
