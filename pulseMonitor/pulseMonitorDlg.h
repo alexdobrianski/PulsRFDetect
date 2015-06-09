@@ -89,4 +89,6 @@ public:
     afx_msg void OnLbnSelchangeListScale();
     CEdit m_LocalFile;
     afx_msg void OnBnClickedButtonSelectFile();
+    CListBox m_Zone;
+    afx_msg void OnLbnSelchangeListZone();
 };

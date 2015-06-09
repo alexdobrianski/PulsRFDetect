@@ -100,6 +100,7 @@ void CpulseMonitorDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_BUTTONRUN, m_Run);
     DDX_Control(pDX, IDC_LIST_SCALE, m_YScale);
     DDX_Control(pDX, IDC_EDIT_LOCAL_FILE, m_LocalFile);
+    DDX_Control(pDX, IDC_LIST_ZONE, m_Zone);
 }
 
 BEGIN_MESSAGE_MAP(CpulseMonitorDlg, CDialogEx)
@@ -117,6 +118,7 @@ BEGIN_MESSAGE_MAP(CpulseMonitorDlg, CDialogEx)
     ON_BN_CLICKED(IDC_BUTTONRUN, &CpulseMonitorDlg::OnBnClickedButtonrun)
     ON_LBN_SELCHANGE(IDC_LIST_SCALE, &CpulseMonitorDlg::OnLbnSelchangeListScale)
     ON_BN_CLICKED(IDC_BUTTON_SELECT_FILE, &CpulseMonitorDlg::OnBnClickedButtonSelectFile)
+    ON_LBN_SELCHANGE(IDC_LIST_ZONE, &CpulseMonitorDlg::OnLbnSelchangeListZone)
 END_MESSAGE_MAP()
 
 
@@ -190,6 +192,10 @@ char szOutPutREcording[3*_MAX_PATH]={"record.apuls"};
 FILE *MyOutPutFIle = NULL;
 BOOL flRecordOpenedForWrite;
 int old_check_box_status = 1;
+TIME_ZONE_INFORMATION tmzone;
+int iZoneBias = 0;
+
+
 typedef struct Measurement
 {
     int NearBody;
@@ -803,6 +809,51 @@ BOOL CpulseMonitorDlg::OnInitDialog()
     m_YScale.AddString("32");
 
     m_YScale.SetCurSel(0);
+
+    int Iret = GetTimeZoneInformation(&tmzone);
+
+    GetLocalTime(&mySYsTime);
+    m_Zone.AddString("-12");
+    m_Zone.AddString("-11");
+    m_Zone.AddString("-10");
+    m_Zone.AddString("-9");
+    m_Zone.AddString("-8");
+    m_Zone.AddString("-7");
+    m_Zone.AddString("-6");
+    m_Zone.AddString("-5");
+    m_Zone.AddString("-4");
+    m_Zone.AddString("-3");
+    m_Zone.AddString("-2");
+    m_Zone.AddString("-1");
+    m_Zone.AddString("0");
+    m_Zone.AddString("+1");
+    m_Zone.AddString("+2");
+    m_Zone.AddString("+3");
+    m_Zone.AddString("+4");
+    m_Zone.AddString("+5");
+    m_Zone.AddString("+6");
+    m_Zone.AddString("+7");
+    m_Zone.AddString("+8");
+    m_Zone.AddString("+9");
+    m_Zone.AddString("+10");
+    m_Zone.AddString("+11");
+    m_Zone.AddString("+12");
+    for (int ip = 0 ; ip < m_Zone.GetCount(); ip++)
+    {
+        CString MyString0;
+        m_Zone.GetText(ip, MyString0);
+        int iVal = atoi(MyString0.GetString());
+        if ((iVal * 60) == (tmzone.Bias + tmzone.DaylightBias))
+        {
+            m_Zone.SetCurSel(ip);
+            iZoneBias = iVal;
+            break;
+        }
+    }
+
+    SYSTEMTIME MyTime1;
+    GetSystemTime(&MyTime1);
+
     memset(&OUtPutPulseStruct, 0, sizeof(OUtPutPulseStruct));
     memset(&pulsars_over_head, 0, sizeof(pulsars_over_head));
     OUtPutPulseStruct.Signature = 0x01020304;
@@ -1096,7 +1147,7 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
             sprintf(szText, "%d", g_i2Min); m_2_min.SetWindowTextA(szText);
             sprintf(szText, "%d", g_i2Mid); m_2_mid.SetWindowTextA(szText);
         }
-        if (flRecordOpenedForWrite == FALSE) // that is tickingt timer and needs to show all switch of the data on the screen
+        if (flRecordOpenedForWrite == FALSE) // that is ticking timer, and needs to show all switch of the data on the screen
         {
             if (MyOutPutFIle != NULL)
             {
@@ -1144,19 +1195,28 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
     }
     else if (nIDEvent== 902)
     {
-        GetCurentPulsarsData();
-        if (iMaxMeasures)
+        if (flRecordOpenedForWrite == FALSE) // that is ticking timer, and needs to show all switch of the data on the screen
         {
-            // pulsars on top of head
-            OUtPutPulseStruct.iCountofVisiblePulsars = iMaxMeasures;
-            for (int i = 0; i < OUtPutPulseStruct.iCountofVisiblePulsars; i++)
+            if (MyOutPutFIle != NULL)
             {
-                OUtPutPulseStruct.pulsars_over_head[i].NearBody = pulsars_over_head[i].NearBody;
-                OUtPutPulseStruct.pulsars_over_head[i].T = pulsars_over_head[i].T;
-                OUtPutPulseStruct.pulsars_over_head[i].px = pulsars_over_head[i].px;
-                strcpy(OUtPutPulseStruct.pulsars_over_head[i].szN, pulsars_over_head[i].szN);
-                OUtPutPulseStruct.pulsars_over_head[i].P0 = pulsars_over_head[i].P0;
-                OUtPutPulseStruct.pulsars_over_head[i].P119 = pulsars_over_head[i].P119;
+            }
+        }
+        else
+        {
+            GetCurentPulsarsData();
+            if (iMaxMeasures)
+            {
+                // pulsars on top of head
+                OUtPutPulseStruct.iCountofVisiblePulsars = iMaxMeasures;
+                for (int i = 0; i < OUtPutPulseStruct.iCountofVisiblePulsars; i++)
+                {
+                    OUtPutPulseStruct.pulsars_over_head[i].NearBody = pulsars_over_head[i].NearBody;
+                    OUtPutPulseStruct.pulsars_over_head[i].T = pulsars_over_head[i].T;
+                    OUtPutPulseStruct.pulsars_over_head[i].px = pulsars_over_head[i].px;
+                    strcpy(OUtPutPulseStruct.pulsars_over_head[i].szN, pulsars_over_head[i].szN);
+                    OUtPutPulseStruct.pulsars_over_head[i].P0 = pulsars_over_head[i].P0;
+                    OUtPutPulseStruct.pulsars_over_head[i].P119 = pulsars_over_head[i].P119;
+                }
             }
         }
 
@@ -1313,5 +1373,16 @@ void CpulseMonitorDlg::OnBnClickedButtonSelectFile()
             }
         }
     }
+
+}
+
+
+void CpulseMonitorDlg::OnLbnSelchangeListZone()
+{
+    // TODO: Add your control notification handler code here
+    int isel = m_Zone.GetCurSel();
+    CString MyString0;
+    m_Zone.GetText(isel, MyString0);
+    iZoneBias = atoi(MyString0.GetString());
 
 }
