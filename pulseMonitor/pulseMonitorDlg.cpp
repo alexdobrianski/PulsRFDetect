@@ -221,7 +221,7 @@ typedef struct WriteStruct
 } WRITE_STRUCT, *PWRITE_STRUCT;
 
 WRITE_STRUCT OUtPutPulseStruct;
-
+BOOL FirstRead = TRUE;
 WRITE_STRUCT ReadPulseStruct;
 
 
@@ -733,6 +733,124 @@ void ParamDoAll(FILE *fInput)
         ParamCommon(szString);
     }
 }
+int iDayOfTheYearZeroBase(int iDay, int iMonth, int iYear)
+{
+	int iDays = iDay-1;
+	switch(iMonth-1)
+	{
+	case 11:// november
+		iDays+=30;
+	case 10:// october
+		iDays+=31;
+	case 9:// september
+		iDays+=30;
+	case 8://august
+		iDays+=31;
+	case 7:// july
+		iDays+=31;
+	case 6:// june
+		iDays+=30;
+	case 5:// may
+		iDays+=31;
+	case 4:// april
+		iDays+=30;
+	case 3:// march
+		iDays+=31;
+	case 2:// february
+		if ((iYear %4) ==0) // leap year
+			iDays+=29;
+		else
+			iDays+=28;
+	case 1:iDays+=31; // january
+	case 0:iDays+=0;
+		break;
+	}
+	return iDays;
+}
+double ConvertDateTimeToTLEEpoch(int iDay, int iMonth, int iYear, int iHour, int iMin, int iSec, int iMills)
+{
+    // An epoch of 98001.00000000 corresponds to 0000 UT on 1998 January 01—in other words, 
+    // midnight between 1997 December 31 and 1998 January 01. 
+    // An epoch of 98000.00000000 would actually correspond to the beginning of 1997 December 31—strange as that might seem. 
+    // Note that the epoch day starts at UT midnight (not noon) and that all times are measured mean solar rather than sidereal time units.
+    int mYear = iYear-2000;
+    int mDays = iDayOfTheYearZeroBase(iDay, iMonth, iYear)+1;
+	long mCurSec = iHour * 60*60;
+    mCurSec += iMin *60;
+    mCurSec += iSec;
+	double dEpoch = mYear *1000.0 + mDays;
+	dEpoch += (((double)mCurSec)+ ((double)iMills/1000.))/ (24.0*60.0*60.0);
+    return dEpoch;
+}
+
+BOOL CallTraToConfirmation(void)
+{
+    BOOL bret = FALSE;
+    char szXMLLine[1024];
+    // open @TRA.XML
+    FILE * MyTRAsetFIle = fopen("@TRA.XML", "r");
+    if (MyTRAsetFIle!=NULL)    // reading old recordings
+    {
+        FILE * MyTRAOutFIle = fopen("TRA.XML", "w");
+        if (MyTRAOutFIle!=NULL)    // reading old recordings
+        {
+            while(fgets(szXMLLine,sizeof(szXMLLine),MyTRAsetFIle))
+            {
+                char *myxmlline = strstr(szXMLLine, "<TRA:setting name=\"SimulationOutputTime\" value=\"0\" />");
+                if (myxmlline != NULL)
+                {
+                    // change date of the observation. Pposition and type of calculation ("Mode" value="SIM", "SimulationType" value="PULSAR") must be set correctly
+                    CTime MyTime = CTime(ReadPulseStruct.myShowSysTime);
+                    CTimeSpan timeBias(0,iZoneBias,0,0);
+                    CTime MySysTime = MyTime + timeBias;
+                    SYSTEMTIME mystime;
+
+                    MySysTime.GetAsSystemTime(mystime);
+                    long double Jdt = ConvertDateTimeToTLEEpoch(mystime.wDay, mystime.wMonth, mystime.wYear, mystime.wHour, mystime.wMinute, mystime.wSecond, 0);
+                    fprintf(MyTRAOutFIle, "<TRA:setting name=\"SimulationOutputTime\" value=\"%.11f\" />\n", Jdt);
+                }
+                else
+                {
+                    fprintf(MyTRAOutFIle, "%s", szXMLLine);
+                }
+            }
+            fclose(MyTRAOutFIle);
+        }
+        fclose(MyTRAsetFIle);
+    }
+    // now needs to execute TRA to get pulsars data
+    STARTUPINFO stinfo = { 0 };
+    stinfo.cb = sizeof( stinfo );
+    char CmdPath[3*_MAX_PATH];
+    PROCESS_INFORMATION ProcInfo;
+    strcpy(CmdPath, szModule);
+    strcat(CmdPath, "\\tra.exe");
+    char DirPath[3*_MAX_PATH];
+    strcpy(DirPath, szModule);
+    //strcat(DirPath, "\\");
+    BOOL fRC = CreateProcessA( CmdPath,       // name of executable module
+                         NULL,    // command-line string
+                         0,             // SD
+                         0,             // SD
+                         FALSE,         // inheritance option
+                         IDLE_PRIORITY_CLASS | CREATE_UNICODE_ENVIRONMENT,// | CREATE_NO_WINDOW, // creation flags
+                         0,             // new environment block
+                         DirPath,           // current directory name
+                         &stinfo,       // startup information
+                         &ProcInfo );   // process information
+
+    DWORD err = GetLastError();
+    if ( fRC )
+    {
+        bret = TRUE;
+        CloseHandle( ProcInfo.hProcess );
+        CloseHandle( ProcInfo.hThread );
+    }
+
+
+
+    return bret;
+}
 
 void GetCurentPulsarsData(void)
 {
@@ -1180,6 +1298,49 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                             size_t imySize = fread(&BUFERREAD, WAVEHDRMainRead.dwBufferLength, 1, MyOutPutFIle);
                             if (1 == imySize)
                             {
+                                if (FirstRead)
+                                {
+                                    if (CallTraToConfirmation())
+                                    {
+                                        FirstRead = TRUE;
+                                        GetCurentPulsarsData();
+                                        if (iMaxMeasures)
+                                        {
+                                            // pulsars on top of head
+                                            OUtPutPulseStruct.iCountofVisiblePulsars = iMaxMeasures;
+                                            ReadPulseStruct.iCountofVisiblePulsars = iMaxMeasures;
+                                            for (int i = 0; i < OUtPutPulseStruct.iCountofVisiblePulsars; i++)
+                                            {
+                                                OUtPutPulseStruct.pulsars_over_head[i].NearBody = pulsars_over_head[i].NearBody;
+                                                OUtPutPulseStruct.pulsars_over_head[i].T = pulsars_over_head[i].T;
+                                                OUtPutPulseStruct.pulsars_over_head[i].px = pulsars_over_head[i].px;
+                                                strcpy(OUtPutPulseStruct.pulsars_over_head[i].szN, pulsars_over_head[i].szN);
+                                                OUtPutPulseStruct.pulsars_over_head[i].P0 = pulsars_over_head[i].P0;
+                                                OUtPutPulseStruct.pulsars_over_head[i].P119 = pulsars_over_head[i].P119;
+
+                                                ReadPulseStruct.pulsars_over_head[i].NearBody = pulsars_over_head[i].NearBody;
+                                                ReadPulseStruct.pulsars_over_head[i].T = pulsars_over_head[i].T;
+                                                ReadPulseStruct.pulsars_over_head[i].px = pulsars_over_head[i].px;
+                                                strcpy(ReadPulseStruct.pulsars_over_head[i].szN, pulsars_over_head[i].szN);
+                                                ReadPulseStruct.pulsars_over_head[i].P0 = pulsars_over_head[i].P0;
+                                                ReadPulseStruct.pulsars_over_head[i].P119 = pulsars_over_head[i].P119;
+                                            }
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    ReadPulseStruct.iCountofVisiblePulsars = iMaxMeasures;
+                                    for (int i = 0; i < ReadPulseStruct.iCountofVisiblePulsars; i++)
+                                    {
+                                        ReadPulseStruct.pulsars_over_head[i].NearBody = pulsars_over_head[i].NearBody;
+                                        ReadPulseStruct.pulsars_over_head[i].T = pulsars_over_head[i].T;
+                                        ReadPulseStruct.pulsars_over_head[i].px = pulsars_over_head[i].px;
+                                        strcpy(ReadPulseStruct.pulsars_over_head[i].szN, pulsars_over_head[i].szN);
+                                        ReadPulseStruct.pulsars_over_head[i].P0 = pulsars_over_head[i].P0;
+                                        ReadPulseStruct.pulsars_over_head[i].P119 = pulsars_over_head[i].P119;
+                                    }
+                                }
                                 AudioStreamCallback(NULL,&WAVEHDRMainRead);
                                 g_reacordCurPos = _ftelli64(MyOutPutFIle);
                                 CTime MyTime = CTime(ReadPulseStruct.myShowSysTime);
@@ -1199,6 +1360,11 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
         {
             if (MyOutPutFIle != NULL)
             {
+                // needs to confirm position of a pulsars
+                if (CallTraToConfirmation())
+                {
+                    GetCurentPulsarsData();
+                }
             }
         }
         else
