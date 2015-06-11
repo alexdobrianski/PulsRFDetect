@@ -54,8 +54,11 @@ extern char szModule[3*_MAX_PATH];
 BOOL CpulseMonitorApp::InitInstance()
 {
 	CWinApp::InitInstance();
-    char *pszModule = ::GetCommandLineA();
-    strcpy(szModule, pszModule);
+    char *pszModule = ::GetCommandLine();
+    if (pszModule[0] == '\"')
+        strcpy(szModule, &pszModule[1]);
+    else
+        strcpy(szModule, pszModule);
     if (strrchr(szModule, '\\') != 0)
         *strrchr(szModule, '\\') =0;
     strcpy(szOutPutREcording, szModule);

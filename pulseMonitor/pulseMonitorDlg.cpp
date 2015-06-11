@@ -179,11 +179,23 @@ unsigned char PiCRGBBlue[3] = {0x00,0x00,0xFF};
 #define IMAGE_H_S 40
 //int RGBReferenceBody = EARTH;
 unsigned char bRGBImage_S1[IMAGE_W_S*IMAGE_H_S*3];
+long double BUFEDETECT1[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2];
+long iPosIn1;
 unsigned char bRGBImage_S2[IMAGE_W_S*IMAGE_H_S*3];
+long double BUFEDETECT2[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2];
+long iPosIn2;
 unsigned char bRGBImage_S3[IMAGE_W_S*IMAGE_H_S*3];
+long double BUFEDETECT3[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2];
+long iPosIn3;
 unsigned char bRGBImage_S4[IMAGE_W_S*IMAGE_H_S*3];
+long double BUFEDETECT4[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2];
+long iPosIn4;
 unsigned char bRGBImage_S5[IMAGE_W_S*IMAGE_H_S*3];
+long double BUFEDETECT5[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2];
+long iPosIn5;
 unsigned char bRGBImage_S6[IMAGE_W_S*IMAGE_H_S*3];
+long double BUFEDETECT6[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2];
+long iPosIn6;
 int bRGBImageW_S = IMAGE_W_S;
 int bRGBImageH_S = IMAGE_H_S;
 
@@ -782,6 +794,49 @@ double ConvertDateTimeToTLEEpoch(int iDay, int iMonth, int iYear, int iHour, int
 	dEpoch += (((double)mCurSec)+ ((double)iMills/1000.))/ (24.0*60.0*60.0);
     return dEpoch;
 }
+long double ConverTLEEpochDate2JulianDay(long double KeplerDate)
+{
+    // TLE elements is 1 day based - needs to minus at the end one day
+    int iYear = (int)(KeplerDate /1000);
+    // date as it is = 2000/01/01     2451544.5, 2451910.5, 2452275.5, 2452640.5, 2453005.5, 2453371.5, 2453736.5, 2013-2456293.5
+    // 
+    double t2000_01_01_01 = 2451544.5;
+    switch(iYear)
+    {
+        // add years = if you still alive !!! or just put formula if ((iYear-1)%4 == 0) t2000_01_01_01+=366; else t2000_01_01_01+=365;
+    case 24:t2000_01_01_01+=365;
+    case 23:t2000_01_01_01+=365;
+    case 22:t2000_01_01_01+=365;
+    case 21:t2000_01_01_01+=366;
+    case 20:t2000_01_01_01+=365;
+    case 19:t2000_01_01_01+=365;
+    case 18:t2000_01_01_01+=365;
+    case 17:t2000_01_01_01+=366;
+    case 16:t2000_01_01_01+=365;
+    case 15:t2000_01_01_01+=365;
+    case 14:t2000_01_01_01+=365;
+    case 13:t2000_01_01_01+=366;
+    case 12:t2000_01_01_01+=365;
+    case 11:t2000_01_01_01+=365;
+    case 10:t2000_01_01_01+=365;
+    case  9:t2000_01_01_01+=366;
+    case  8:t2000_01_01_01+=365;
+    case  7:t2000_01_01_01+=365;
+    case  6:t2000_01_01_01+=365;
+    case  5:t2000_01_01_01+=366;
+    case  4:t2000_01_01_01+=365;
+    case  3:t2000_01_01_01+=365;
+    case  2:t2000_01_01_01+=365;
+    case  1:t2000_01_01_01+=366;
+    case  0:;
+        // minus years = add if you interesting in anything from last century or use formala!!
+    }
+    //long it2000_01_01_01 = t2000_01_01_01;
+    //double RestOfTheDay = t2000_01_01_01 - (double)it2000_01_01_01;
+    return t2000_01_01_01// - RestOfTheDay 
+            + KeplerDate - ((long double)(iYear*1000))
+            -1; // epoch date is 1== 1 Jan - needs to adjust one day.
+}
 
 BOOL CallTraToConfirmation(void)
 {
@@ -806,8 +861,10 @@ BOOL CallTraToConfirmation(void)
                     SYSTEMTIME mystime;
 
                     MySysTime.GetAsSystemTime(mystime);
-                    long double Jdt = ConvertDateTimeToTLEEpoch(mystime.wDay, mystime.wMonth, mystime.wYear, mystime.wHour, mystime.wMinute, mystime.wSecond, 0);
-                    fprintf(MyTRAOutFIle, "<TRA:setting name=\"SimulationOutputTime\" value=\"%.11f\" />\n", Jdt);
+                    long double TLEdt = ConvertDateTimeToTLEEpoch(mystime.wDay, mystime.wMonth, mystime.wYear, mystime.wHour, mystime.wMinute, mystime.wSecond, 0);
+                    //long double ld_dStartJD = ConverTLEEpochDate2JulianDay(Jdt);
+
+                    fprintf(MyTRAOutFIle, "<TRA:setting name=\"SimulationOutputTime\" value=\"%.11f\" />\n", TLEdt);
                 }
                 else
                 {
@@ -821,13 +878,16 @@ BOOL CallTraToConfirmation(void)
     // now needs to execute TRA to get pulsars data
     STARTUPINFO stinfo = { 0 };
     stinfo.cb = sizeof( stinfo );
+    char szSourceFile[3*MAX_PATH];
+    char szTragetFile[3*MAX_PATH];
     char CmdPath[3*_MAX_PATH];
     PROCESS_INFORMATION ProcInfo;
     strcpy(CmdPath, szModule);
     strcat(CmdPath, "\\tra.exe");
     char DirPath[3*_MAX_PATH];
     strcpy(DirPath, szModule);
-    //strcat(DirPath, "\\");
+    strcat(DirPath, "\\");
+
     BOOL fRC = CreateProcessA( CmdPath,       // name of executable module
                          NULL,    // command-line string
                          0,             // SD
@@ -835,18 +895,24 @@ BOOL CallTraToConfirmation(void)
                          FALSE,         // inheritance option
                          IDLE_PRIORITY_CLASS | CREATE_UNICODE_ENVIRONMENT,// | CREATE_NO_WINDOW, // creation flags
                          0,             // new environment block
-                         DirPath,           // current directory name
+                         NULL,           // current directory name
                          &stinfo,       // startup information
                          &ProcInfo );   // process information
 
     DWORD err = GetLastError();
     if ( fRC )
     {
+        WaitForSingleObject(ProcInfo.hProcess, 10000);
         bret = TRUE;
         CloseHandle( ProcInfo.hProcess );
         CloseHandle( ProcInfo.hThread );
+        strcpy(szSourceFile, szModule);
+        strcat(szSourceFile, "\\@trasimoutput.xml");
+        strcpy(szTragetFile, szModule);
+        strcat(szTragetFile, "\\trasimoutput.xml");
+        bret = CopyFile(szSourceFile, szTragetFile, FALSE);
+        err = GetLastError();
     }
-
 
 
     return bret;
@@ -856,6 +922,7 @@ void GetCurentPulsarsData(void)
 {
     g_fInputReadUrlOrFile = NULL;
     iMaxMeasures = 0;
+
     if (GetFileString(g_szXMLFileName, "_trasimoutput_.xml", 0, NULL, 0) == 0) // open was successfull fInputReadUrlOrFile is a handler
     {
         ParamDoAll(g_fInputReadUrlOrFile);
@@ -1300,31 +1367,90 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                             {
                                 if (FirstRead)
                                 {
-                                    if (CallTraToConfirmation())
+                                    FirstRead = TRUE;
+                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2; il++)
                                     {
-                                        FirstRead = TRUE;
-                                        GetCurentPulsarsData();
-                                        if (iMaxMeasures)
+                                        BUFEDETECT1[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2] = 0.0;
+                                        BUFEDETECT2[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2] = 0.0;
+                                        BUFEDETECT3[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2] = 0.0;
+                                        BUFEDETECT4[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2] = 0.0;
+                                        BUFEDETECT5[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2] = 0.0;
+                                        BUFEDETECT6[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2] = 0.0;
+                                    }
+                                    iPosIn1 = 0; iPosIn2 = 0; iPosIn3 = 0; iPosIn4 = 0; iPosIn5 = 0; iPosIn6 = 0;
+                                }
+                                if (CallTraToConfirmation())
+                                {
+                                    FirstRead = TRUE;
+                                    GetCurentPulsarsData();
+                                    if (iMaxMeasures)
+                                    {
+                                        // pulsars on top of head
+                                        OUtPutPulseStruct.iCountofVisiblePulsars = iMaxMeasures;
+                                        ReadPulseStruct.iCountofVisiblePulsars = iMaxMeasures;
+                                        for (int i = 0; i < OUtPutPulseStruct.iCountofVisiblePulsars; i++)
                                         {
-                                            // pulsars on top of head
-                                            OUtPutPulseStruct.iCountofVisiblePulsars = iMaxMeasures;
-                                            ReadPulseStruct.iCountofVisiblePulsars = iMaxMeasures;
-                                            for (int i = 0; i < OUtPutPulseStruct.iCountofVisiblePulsars; i++)
-                                            {
-                                                OUtPutPulseStruct.pulsars_over_head[i].NearBody = pulsars_over_head[i].NearBody;
-                                                OUtPutPulseStruct.pulsars_over_head[i].T = pulsars_over_head[i].T;
-                                                OUtPutPulseStruct.pulsars_over_head[i].px = pulsars_over_head[i].px;
-                                                strcpy(OUtPutPulseStruct.pulsars_over_head[i].szN, pulsars_over_head[i].szN);
-                                                OUtPutPulseStruct.pulsars_over_head[i].P0 = pulsars_over_head[i].P0;
-                                                OUtPutPulseStruct.pulsars_over_head[i].P119 = pulsars_over_head[i].P119;
+                                            OUtPutPulseStruct.pulsars_over_head[i].NearBody = pulsars_over_head[i].NearBody;
+                                            OUtPutPulseStruct.pulsars_over_head[i].T = pulsars_over_head[i].T;
+                                            OUtPutPulseStruct.pulsars_over_head[i].px = pulsars_over_head[i].px;
+                                            strcpy(OUtPutPulseStruct.pulsars_over_head[i].szN, pulsars_over_head[i].szN);
+                                            OUtPutPulseStruct.pulsars_over_head[i].P0 = pulsars_over_head[i].P0;
+                                            OUtPutPulseStruct.pulsars_over_head[i].P119 = pulsars_over_head[i].P119;
 
-                                                ReadPulseStruct.pulsars_over_head[i].NearBody = pulsars_over_head[i].NearBody;
-                                                ReadPulseStruct.pulsars_over_head[i].T = pulsars_over_head[i].T;
-                                                ReadPulseStruct.pulsars_over_head[i].px = pulsars_over_head[i].px;
-                                                strcpy(ReadPulseStruct.pulsars_over_head[i].szN, pulsars_over_head[i].szN);
-                                                ReadPulseStruct.pulsars_over_head[i].P0 = pulsars_over_head[i].P0;
-                                                ReadPulseStruct.pulsars_over_head[i].P119 = pulsars_over_head[i].P119;
+                                            ReadPulseStruct.pulsars_over_head[i].NearBody = pulsars_over_head[i].NearBody;
+                                            ReadPulseStruct.pulsars_over_head[i].T = pulsars_over_head[i].T;
+                                            ReadPulseStruct.pulsars_over_head[i].px = pulsars_over_head[i].px;
+                                            if (strcmp(ReadPulseStruct.pulsars_over_head[i].szN, pulsars_over_head[i].szN) != 0)
+                                            {
+                                                switch(i)
+                                                {
+                                                case 0:
+                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2; il++)
+                                                    {
+                                                        BUFEDETECT1[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2] = 0.0;
+                                                    }
+                                                    iPosIn1 = 0;
+                                                    break;
+                                                case 1:
+                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2; il++)
+                                                    {
+                                                        BUFEDETECT2[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2] = 0.0;
+                                                    }
+                                                    iPosIn2 = 0;
+                                                    break;
+                                                case 2:
+                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2; il++)
+                                                    {
+                                                        BUFEDETECT3[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2] = 0.0;
+                                                    }
+                                                    iPosIn3 = 0;
+                                                    break;
+                                                case 3:
+                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2; il++)
+                                                    {
+                                                        BUFEDETECT4[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2] = 0.0;
+                                                    }
+                                                    iPosIn4 = 0;
+                                                    break;
+                                                case 4:
+                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2; il++)
+                                                    {
+                                                        BUFEDETECT5[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2] = 0.0;
+                                                    }
+                                                    iPosIn5 = 0;
+                                                    break;
+                                                case 5:
+                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2; il++)
+                                                    {
+                                                        BUFEDETECT6[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2] = 0.0;
+                                                    }
+                                                    iPosIn6 = 0;
+                                                    break;
+                                                }
                                             }
+                                            strcpy(ReadPulseStruct.pulsars_over_head[i].szN, pulsars_over_head[i].szN);
+                                            ReadPulseStruct.pulsars_over_head[i].P0 = pulsars_over_head[i].P0;
+                                            ReadPulseStruct.pulsars_over_head[i].P119 = pulsars_over_head[i].P119;
                                         }
                                     }
                                 }
