@@ -101,6 +101,12 @@ void CpulseMonitorDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_LIST_SCALE, m_YScale);
     DDX_Control(pDX, IDC_EDIT_LOCAL_FILE, m_LocalFile);
     DDX_Control(pDX, IDC_LIST_ZONE, m_Zone);
+    DDX_Control(pDX, IDC_STATIC_FQ1_PIC, m_PicPulse1);
+    DDX_Control(pDX, IDC_STATIC_FQ2_PIC, m_PicPulse2);
+    DDX_Control(pDX, IDC_STATIC_FQ3_PIC, m_PicPulse3);
+    DDX_Control(pDX, IDC_STATIC_FQ4_PIC, m_PicPulse4);
+    DDX_Control(pDX, IDC_STATIC_FQ5_PIC, m_PicPulse5);
+    DDX_Control(pDX, IDC_STATIC_FQ6_PIC, m_PicPulse6);
 }
 
 BEGIN_MESSAGE_MAP(CpulseMonitorDlg, CDialogEx)
@@ -119,6 +125,7 @@ BEGIN_MESSAGE_MAP(CpulseMonitorDlg, CDialogEx)
     ON_LBN_SELCHANGE(IDC_LIST_SCALE, &CpulseMonitorDlg::OnLbnSelchangeListScale)
     ON_BN_CLICKED(IDC_BUTTON_SELECT_FILE, &CpulseMonitorDlg::OnBnClickedButtonSelectFile)
     ON_LBN_SELCHANGE(IDC_LIST_ZONE, &CpulseMonitorDlg::OnLbnSelchangeListZone)
+    ON_BN_CLICKED(IDC_BUTTON_CLEAR, &CpulseMonitorDlg::OnBnClickedButtonClear)
 END_MESSAGE_MAP()
 
 
@@ -174,28 +181,65 @@ int bRGBImageH = IMAGE_H;
 unsigned char PiCRGB[3] = {0x00,0x00,0x00};
 unsigned char PiCRGBGray[3] = {0x80,0x80,0x80};
 unsigned char PiCRGBBlue[3] = {0x00,0x00,0xFF};
+unsigned char PiCRGBGreen[3] = {0x00,0xff,0x00};
 
-#define IMAGE_W_S 342
-#define IMAGE_H_S 40
+#define IMAGE_W_S 512
+#define IMAGE_H_S 64
 //int RGBReferenceBody = EARTH;
 unsigned char bRGBImage_S1[IMAGE_W_S*IMAGE_H_S*3];
-long double BUFEDETECT1[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2];
+long double BUFEDETECT1[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2];
 long iPosIn1;
+long double Pmin1_1= 1.0e64;
+long double Pmax1_1=-1.0e64;
+long double Pmin2_1= 1.0e64;
+long double Pmax2_1=-1.0e64;
+
 unsigned char bRGBImage_S2[IMAGE_W_S*IMAGE_H_S*3];
-long double BUFEDETECT2[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2];
+long double BUFEDETECT2[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2];
 long iPosIn2;
+long double Pmin1_2= 1.0e64;
+long double Pmax1_2=-1.0e64;
+long double Pmin2_2= 1.0e64;
+long double Pmax2_2=-1.0e64;
 unsigned char bRGBImage_S3[IMAGE_W_S*IMAGE_H_S*3];
-long double BUFEDETECT3[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2];
+long double BUFEDETECT3[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2];
 long iPosIn3;
+long double Pmin1_3= 1.0e64;
+long double Pmax1_3=-1.0e64;
+long double Pmin2_3= 1.0e64;
+long double Pmax2_3=-1.0e64;
+
 unsigned char bRGBImage_S4[IMAGE_W_S*IMAGE_H_S*3];
-long double BUFEDETECT4[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2];
+long double BUFEDETECT4[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2];
 long iPosIn4;
+long double Pmin1_4= 1.0e64;
+long double Pmax1_4=-1.0e64;
+long double Pmin2_4= 1.0e64;
+long double Pmax2_4=-1.0e64;
+
 unsigned char bRGBImage_S5[IMAGE_W_S*IMAGE_H_S*3];
-long double BUFEDETECT5[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2];
+long double BUFEDETECT5[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2];
 long iPosIn5;
+long double Pmin1_5= 1.0e64;
+long double Pmax1_5=-1.0e64;
+long double Pmin2_5= 1.0e64;
+long double Pmax2_5=-1.0e64;
+
 unsigned char bRGBImage_S6[IMAGE_W_S*IMAGE_H_S*3];
-long double BUFEDETECT6[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2];
+long double BUFEDETECT6[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2];
 long iPosIn6;
+long double Pmin1_6= 1.0e64;
+long double Pmax1_6=-1.0e64;
+long double Pmin2_6= 1.0e64;
+long double Pmax2_6=-1.0e64;
+
+long double BUFEDETECTtmp[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2];
+long double Pmin1_tmp= -12345678;
+long double Pmax1_tmp;
+long double Pmin2_tmp;
+long double Pmax2_tmp;
+
+
 int bRGBImageW_S = IMAGE_W_S;
 int bRGBImageH_S = IMAGE_H_S;
 
@@ -257,7 +301,7 @@ void putpixelS(unsigned char *bRGBImageS,unsigned char *bRGB, int X, int Y)
     }
 }
 // should be no longer than 1 sec 
-LRESULT CALLBACK AudioStreamCallback(HWND hwndC,LPWAVEHDR lpWAVEHDR)
+LRESULT CALLBACK AudioStreamCallback(HWND hwndC,LPWAVEHDR lpWAVEHDR, BOOL flProcessPulsars)
 {
 
     int iSize = format.wf.nBlockAlign;
@@ -336,7 +380,99 @@ LRESULT CALLBACK AudioStreamCallback(HWND hwndC,LPWAVEHDR lpWAVEHDR)
         {
         }
     }
+    if (flProcessPulsars)
+    {
+        if (iMaxMeasures)
+        {
+                                        // pulsars on top of head
+            
+            for (int j = 0; j < iMaxMeasures; j++)
+            {
+                BOOL WasProcessed = FALSE;
+                long double dLenOfPuls = SAMPLES_PER_SEC * pulsars_over_head[j].px;
+                long iLenOfPuls = dLenOfPuls;
+                long iStart = 0;
+                long double *dIntegralVal = NULL;
+                long double *dIntegralVal0 = NULL;
+                long double ldMin1=1.0e+64;
+                long double ldMax1=-1.0e+64;
+                long double ldMin2=1.0e+64;
+                long double ldMax2=-1.0e+64;
+                unsigned char *bRGBImage_S= NULL;
 
+
+                switch (j)
+                {
+                case 0: iStart = iPosIn1; ldMin1 = Pmin1_1; ldMax1 = Pmax1_1; ldMin2 = Pmin2_1; ldMax2 = Pmax2_1;
+                        dIntegralVal0 = &BUFEDETECT1[0];dIntegralVal = &BUFEDETECT1[iStart*2];bRGBImage_S = &bRGBImage_S1[0];break;
+                case 1: iStart = iPosIn2; ldMin1 = Pmin1_2; ldMax1 = Pmax1_2; ldMin2 = Pmin2_2; ldMax2 = Pmax2_2;
+                        dIntegralVal0 = &BUFEDETECT2[0];dIntegralVal = &BUFEDETECT2[iStart*2];bRGBImage_S = &bRGBImage_S2[0];break;
+                case 2: iStart = iPosIn3; ldMin1 = Pmin1_3; ldMax1 = Pmax1_3; ldMin2 = Pmin2_3; ldMax2 = Pmax2_3;
+                        dIntegralVal0 = &BUFEDETECT3[0];dIntegralVal = &BUFEDETECT3[iStart*2];bRGBImage_S = &bRGBImage_S3[0];break;
+                case 3: iStart = iPosIn4; ldMin1 = Pmin1_4; ldMax1 = Pmax1_4; ldMin2 = Pmin2_4; ldMax2 = Pmax2_4;
+                        dIntegralVal0 = &BUFEDETECT4[0];dIntegralVal = &BUFEDETECT4[iStart*2];bRGBImage_S = &bRGBImage_S4[0];break;
+                case 4: iStart = iPosIn5; ldMin1 = Pmin1_5; ldMax1 = Pmax1_5; ldMin2 = Pmin2_5; ldMax2 = Pmax2_5;
+                        dIntegralVal0 = &BUFEDETECT5[0];dIntegralVal = &BUFEDETECT5[iStart*2];bRGBImage_S = &bRGBImage_S5[0];break;
+                case 5: iStart = iPosIn6; ldMin1 = Pmin1_6; ldMax1 = Pmax1_6; ldMin2 = Pmin2_6; ldMax2 = Pmax2_6;
+                        dIntegralVal0 = &BUFEDETECT6[0];dIntegralVal = &BUFEDETECT6[iStart*2];bRGBImage_S = &bRGBImage_S6[0];break;
+                }
+                for (long i = 0; i < lpWAVEHDR->dwBufferLength; i+=NUMBER_OF_CHANNELS*2)
+                {
+                    signed short iVal1 = *(signed short *)&lpWAVEHDR->lpData[i];
+                    signed short iVal2 = *(signed short *)&lpWAVEHDR->lpData[i+2];
+                    *(dIntegralVal) +=iVal1;
+                    if (*(dIntegralVal) < ldMin1)
+                        ldMin1 = *(dIntegralVal);
+                    if (*(dIntegralVal) >= ldMax1)
+                        ldMax1 = *(dIntegralVal);
+                    dIntegralVal++;
+                    *(dIntegralVal) +=iVal2;
+                    if (*(dIntegralVal) < ldMin2)
+                        ldMin2 = *(dIntegralVal);
+                    if (*(dIntegralVal) >= ldMax2)
+                        ldMax2 = *(dIntegralVal);
+
+                    dIntegralVal++;
+                    if (++iStart > iLenOfPuls)
+                    {
+                        memcpy(BUFEDETECTtmp, dIntegralVal0, sizeof(BUFEDETECTtmp));
+                        Pmin1_tmp= ldMin1; Pmax1_tmp = ldMax1; Pmin2_tmp = ldMin2; Pmax2_tmp = ldMax2;
+
+                        iStart = 0;
+                        dIntegralVal = dIntegralVal0;
+                        ldMin1 = 1.0e64; ldMax1 = -1.0e64; ldMin2 = 1.0e64; ldMax2 = -1.0e64;
+                        WasProcessed = TRUE;
+                    }
+                }
+                if (WasProcessed)
+                {
+                    dIntegralVal = BUFEDETECTtmp;
+                    long double ldDifs1 = Pmax1_tmp - Pmin1_tmp;
+                    long double ldDifs2 = Pmax2_tmp - Pmin2_tmp;
+                    memset(bRGBImage_S, 0xff, sizeof(bRGBImage_S1));
+                    for (long io = 0; io < iLenOfPuls; io++)
+                    {
+                        int iX = bRGBImageW_S * (long double) io / (long double)iLenOfPuls;
+                        int iY = (*dIntegralVal - Pmin1_tmp)/ ldDifs1*bRGBImageH_S/2;
+                        putpixelS(bRGBImage_S,PiCRGBGreen, iX, bRGBImageH_S/2 - iY);
+                        dIntegralVal++;
+                        iY = (*dIntegralVal - Pmin2_tmp)/ ldDifs2*bRGBImageH_S/2;
+                        putpixelS(bRGBImage_S,PiCRGBGreen, iX, bRGBImageH_S - iY);
+                        dIntegralVal++;
+                    }
+                }
+                switch(j)
+                {
+                case 0:iPosIn1 = iStart;Pmin1_1 = ldMin1; Pmax1_1 = ldMax1; Pmin2_1 = ldMin2; Pmax2_1 = ldMax2;break;
+                case 1:iPosIn2 = iStart;Pmin1_2 = ldMin1; Pmax1_2 = ldMax1; Pmin2_2 = ldMin2; Pmax2_2 = ldMax2;break;
+                case 2:iPosIn3 = iStart;Pmin1_3 = ldMin1; Pmax1_3 = ldMax1; Pmin2_3 = ldMin2; Pmax2_3 = ldMax2;break;
+                case 3:iPosIn4 = iStart;Pmin1_4 = ldMin1; Pmax1_4 = ldMax1; Pmin2_4 = ldMin2; Pmax2_4 = ldMax2;break;
+                case 4:iPosIn5 = iStart;Pmin1_5 = ldMin1; Pmax1_5 = ldMax1; Pmin2_5 = ldMin2; Pmax2_5 = ldMax2;break;
+                case 5:iPosIn6 = iStart;Pmin1_6 = ldMin1; Pmax1_6 = ldMax1; Pmin2_6 = ldMin2; Pmax2_6 = ldMax2;break;
+                }
+            }
+        }
+    }
 	return(0);
 }
 SYSTEMTIME mySYsTime;
@@ -378,7 +514,7 @@ void CALLBACK waveInProc(  HWAVEIN hwi, UINT uMsg, DWORD dwInstance, DWORD dwPar
         WAVEHDRMain.dwLoops = pWaveHdr->dwLoops;
         WAVEHDRMain.reserved =pWaveHdr->reserved;
         
-		AudioStreamCallback((HWND)-1,&WAVEHDRMain);
+		AudioStreamCallback((HWND)-1,&WAVEHDRMain, FALSE);
 		fInsideCallBack = FALSE;
 	}
 }
@@ -893,7 +1029,7 @@ BOOL CallTraToConfirmation(void)
                          0,             // SD
                          0,             // SD
                          FALSE,         // inheritance option
-                         IDLE_PRIORITY_CLASS | CREATE_UNICODE_ENVIRONMENT,// | CREATE_NO_WINDOW, // creation flags
+                         IDLE_PRIORITY_CLASS | CREATE_UNICODE_ENVIRONMENT | CREATE_NO_WINDOW, // creation flags
                          0,             // new environment block
                          NULL,           // current directory name
                          &stinfo,       // startup information
@@ -1101,7 +1237,19 @@ BOOL CpulseMonitorDlg::OnInitDialog()
     g_SecondsPerScreen = m_SecondsPerScreen;
     g_isecond = 0;
     hBmpMainSignal = NULL;
+    hBmpPicPulsar1 = NULL;
+    hBmpPicPulsar2 = NULL;
+    hBmpPicPulsar3 = NULL;
+    hBmpPicPulsar4 = NULL;
+    hBmpPicPulsar5 = NULL;
+    hBmpPicPulsar6 = NULL;
     memset(bRGBImage, 0xff, sizeof(bRGBImage));
+    memset(bRGBImage_S1, 0xff, sizeof(bRGBImage_S1));
+    memset(bRGBImage_S2, 0xff, sizeof(bRGBImage_S2));
+    memset(bRGBImage_S3, 0xff, sizeof(bRGBImage_S3));
+    memset(bRGBImage_S4, 0xff, sizeof(bRGBImage_S4));
+    memset(bRGBImage_S5, 0xff, sizeof(bRGBImage_S5));
+    memset(bRGBImage_S6, 0xff, sizeof(bRGBImage_S6));
     //SYSTEMTIME mySYsTime;
     GetLocalTime(&mySYsTime);
     memcpy(&OUtPutPulseStruct.myShowSysTime, &mySYsTime, sizeof(OUtPutPulseStruct.myShowSysTime));
@@ -1137,13 +1285,6 @@ BOOL CpulseMonitorDlg::OnInitDialog()
     SetTimer(901, 1000,NULL);
     SetTimer(902,60500,NULL);
     m_LocalFile.SetWindowTextA(szOutPutREcording);
-
-    memset(bRGBImage_S1, 0xff, sizeof(bRGBImage_S1));
-    memset(bRGBImage_S2, 0xff, sizeof(bRGBImage_S2));
-    memset(bRGBImage_S3, 0xff, sizeof(bRGBImage_S3));
-    memset(bRGBImage_S4, 0xff, sizeof(bRGBImage_S4));
-    memset(bRGBImage_S5, 0xff, sizeof(bRGBImage_S5));
-    memset(bRGBImage_S6, 0xff, sizeof(bRGBImage_S6));
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -1217,6 +1358,18 @@ BOOL CpulseMonitorDlg::DestroyWindow()
     KillTimer(902);
     if (hBmpMainSignal!=NULL)
         DeleteObject(hBmpMainSignal);
+    if (hBmpPicPulsar1!=NULL)
+        DeleteObject(hBmpPicPulsar1);
+    if (hBmpPicPulsar2!=NULL)
+        DeleteObject(hBmpPicPulsar2);
+    if (hBmpPicPulsar3!=NULL)
+        DeleteObject(hBmpPicPulsar3);
+    if (hBmpPicPulsar4!=NULL)
+        DeleteObject(hBmpPicPulsar4);
+    if (hBmpPicPulsar5!=NULL)
+        DeleteObject(hBmpPicPulsar5);
+    if (hBmpPicPulsar6!=NULL)
+        DeleteObject(hBmpPicPulsar6);
 
     StopWAVCapture();
     if (MyOutPutFIle != NULL)
@@ -1262,6 +1415,28 @@ void CpulseMonitorDlg::OnNMCustomdrawSlider1(NMHDR *pNMHDR, LRESULT *pResult)
 {
     LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
     // TODO: Add your control notification handler code here
+    int iPosSlide = m_SLider.GetPos();
+    int iMaxSlide = m_SLider.GetRangeMax();
+    if (flRecordOpenedForWrite == FALSE)
+    {
+        if (MyOutPutFIle != NULL)
+        {
+            g_reacordCurPos = g_reacordMAxSize*iPosSlide;
+            g_reacordCurPos /=iMaxSlide;
+             _fseeki64( MyOutPutFIle, g_reacordCurPos, SEEK_SET);
+            for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2; il++)
+            {
+                BUFEDETECT1[il] = 0.0; BUFEDETECT2[il] = 0.0; BUFEDETECT3[il] = 0.0;
+                BUFEDETECT4[il] = 0.0; BUFEDETECT5[il] = 0.0; BUFEDETECT6[il] = 0.0;
+            }
+            iPosIn1 = 0; Pmin1_1 = 1.0e64; Pmax1_1=-1.0e64; Pmin2_1 = 1.0e64; Pmax2_1=-1.0e64;
+            iPosIn2 = 0; Pmin1_2 = 1.0e64; Pmax1_2=-1.0e64; Pmin2_2 = 1.0e64; Pmax2_2=-1.0e64;
+            iPosIn3 = 0;  Pmin1_3 = 1.0e64; Pmax1_3=-1.0e64; Pmin2_3 = 1.0e64; Pmax2_3=-1.0e64;
+            iPosIn4 = 0; Pmin1_4 = 1.0e64; Pmax1_4=-1.0e64; Pmin2_4 = 1.0e64; Pmax2_4=-1.0e64;
+            iPosIn5 = 0; Pmin1_5 = 1.0e64; Pmax1_5=-1.0e64; Pmin2_5 = 1.0e64; Pmax2_5=-1.0e64;
+            iPosIn6 = 0; Pmin1_6 = 1.0e64; Pmax1_6=-1.0e64; Pmin2_6 = 1.0e64; Pmax2_6=-1.0e64;
+        }
+    }
     *pResult = 0;
 }
 
@@ -1287,8 +1462,6 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
 
         if (hBmpMainSignal!=NULL)
     		DeleteObject(hBmpMainSignal);
-
-
 
         // get a DC  
         HDC         hDC;                    
@@ -1365,23 +1538,29 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                             size_t imySize = fread(&BUFERREAD, WAVEHDRMainRead.dwBufferLength, 1, MyOutPutFIle);
                             if (1 == imySize)
                             {
-                                if (FirstRead)
+                                if (FirstRead==FALSE)
                                 {
                                     FirstRead = TRUE;
                                     for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2; il++)
                                     {
-                                        BUFEDETECT1[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2] = 0.0;
-                                        BUFEDETECT2[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2] = 0.0;
-                                        BUFEDETECT3[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2] = 0.0;
-                                        BUFEDETECT4[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2] = 0.0;
-                                        BUFEDETECT5[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2] = 0.0;
-                                        BUFEDETECT6[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2] = 0.0;
+                                        BUFEDETECT1[il] = 0.0;
+                                        BUFEDETECT2[il] = 0.0;
+                                        BUFEDETECT3[il] = 0.0;
+                                        BUFEDETECT4[il] = 0.0;
+                                        BUFEDETECT5[il] = 0.0;
+                                        BUFEDETECT6[il] = 0.0;
                                     }
                                     iPosIn1 = 0; iPosIn2 = 0; iPosIn3 = 0; iPosIn4 = 0; iPosIn5 = 0; iPosIn6 = 0;
+                                    Pmin1_1 = 1.0e64; Pmax1_1=-1.0e64; Pmin2_1 = 1.0e64; Pmax2_1=-1.0e64;
+                                    Pmin1_2 = 1.0e64; Pmax1_2=-1.0e64; Pmin2_2 = 1.0e64; Pmax2_2=-1.0e64;
+                                    Pmin1_3 = 1.0e64; Pmax1_3=-1.0e64; Pmin2_3 = 1.0e64; Pmax2_3=-1.0e64;
+                                    Pmin1_4 = 1.0e64; Pmax1_4=-1.0e64; Pmin2_4 = 1.0e64; Pmax2_4=-1.0e64;
+                                    Pmin1_5 = 1.0e64; Pmax1_5=-1.0e64; Pmin2_5 = 1.0e64; Pmax2_5=-1.0e64;
+                                    Pmin1_6 = 1.0e64; Pmax1_6=-1.0e64; Pmin2_6 = 1.0e64; Pmax2_6=-1.0e64;
                                 }
                                 if (CallTraToConfirmation())
                                 {
-                                    FirstRead = TRUE;
+                                    //FirstRead = TRUE;
                                     GetCurentPulsarsData();
                                     if (iMaxMeasures)
                                     {
@@ -1393,64 +1572,126 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                                             OUtPutPulseStruct.pulsars_over_head[i].NearBody = pulsars_over_head[i].NearBody;
                                             OUtPutPulseStruct.pulsars_over_head[i].T = pulsars_over_head[i].T;
                                             OUtPutPulseStruct.pulsars_over_head[i].px = pulsars_over_head[i].px;
-                                            strcpy(OUtPutPulseStruct.pulsars_over_head[i].szN, pulsars_over_head[i].szN);
+                                            //strcpy(OUtPutPulseStruct.pulsars_over_head[i].szN, pulsars_over_head[i].szN);
                                             OUtPutPulseStruct.pulsars_over_head[i].P0 = pulsars_over_head[i].P0;
                                             OUtPutPulseStruct.pulsars_over_head[i].P119 = pulsars_over_head[i].P119;
+                                            OUtPutPulseStruct.pulsars_over_head[i].jy = pulsars_over_head[i].jy;
 
                                             ReadPulseStruct.pulsars_over_head[i].NearBody = pulsars_over_head[i].NearBody;
                                             ReadPulseStruct.pulsars_over_head[i].T = pulsars_over_head[i].T;
                                             ReadPulseStruct.pulsars_over_head[i].px = pulsars_over_head[i].px;
-                                            if (strcmp(ReadPulseStruct.pulsars_over_head[i].szN, pulsars_over_head[i].szN) != 0)
+                                            if (strcmp(OUtPutPulseStruct.pulsars_over_head[i].szN, pulsars_over_head[i].szN) != 0)
                                             {
                                                 switch(i)
                                                 {
                                                 case 0:
-                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2; il++)
-                                                    {
-                                                        BUFEDETECT1[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2] = 0.0;
-                                                    }
-                                                    iPosIn1 = 0;
+                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2; il++)
+                                                        BUFEDETECT1[il] = 0.0;
+                                                    iPosIn1 = 0; Pmin1_1 = 1.0e64; Pmax1_1=-1.0e64; Pmin2_1 = 1.0e64; Pmax2_1=-1.0e64;
                                                     break;
                                                 case 1:
-                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2; il++)
-                                                    {
-                                                        BUFEDETECT2[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2] = 0.0;
-                                                    }
-                                                    iPosIn2 = 0;
+                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2; il++)
+                                                        BUFEDETECT2[il] = 0.0;
+                                                    iPosIn2 = 0; Pmin1_2 = 1.0e64; Pmax1_2=-1.0e64; Pmin2_2 = 1.0e64; Pmax2_2=-1.0e64;
                                                     break;
                                                 case 2:
-                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2; il++)
-                                                    {
-                                                        BUFEDETECT3[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2] = 0.0;
-                                                    }
-                                                    iPosIn3 = 0;
+                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2; il++)
+                                                        BUFEDETECT3[il] = 0.0;
+                                                    iPosIn3 = 0;  Pmin1_3 = 1.0e64; Pmax1_3=-1.0e64; Pmin2_3 = 1.0e64; Pmax2_3=-1.0e64;
                                                     break;
                                                 case 3:
-                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2; il++)
-                                                    {
-                                                        BUFEDETECT4[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2] = 0.0;
-                                                    }
-                                                    iPosIn4 = 0;
+                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2; il++)
+                                                        BUFEDETECT4[il] = 0.0;
+                                                    iPosIn4 = 0; Pmin1_4 = 1.0e64; Pmax1_4=-1.0e64; Pmin2_4 = 1.0e64; Pmax2_4=-1.0e64;
                                                     break;
                                                 case 4:
-                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2; il++)
-                                                    {
-                                                        BUFEDETECT5[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2] = 0.0;
-                                                    }
-                                                    iPosIn5 = 0;
+                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2; il++)
+                                                        BUFEDETECT5[il] = 0.0;
+                                                    iPosIn5 = 0; Pmin1_5 = 1.0e64; Pmax1_5=-1.0e64; Pmin2_5 = 1.0e64; Pmax2_5=-1.0e64;
                                                     break;
                                                 case 5:
-                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2; il++)
-                                                    {
-                                                        BUFEDETECT6[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2] = 0.0;
-                                                    }
-                                                    iPosIn6 = 0;
+                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2; il++)
+                                                        BUFEDETECT6[il] = 0.0;
+                                                    iPosIn6 = 0; Pmin1_6 = 1.0e64; Pmax1_6=-1.0e64; Pmin2_6 = 1.0e64; Pmax2_6=-1.0e64;
                                                     break;
                                                 }
                                             }
-                                            strcpy(ReadPulseStruct.pulsars_over_head[i].szN, pulsars_over_head[i].szN);
+                                            strcpy(OUtPutPulseStruct.pulsars_over_head[i].szN, pulsars_over_head[i].szN);
                                             ReadPulseStruct.pulsars_over_head[i].P0 = pulsars_over_head[i].P0;
                                             ReadPulseStruct.pulsars_over_head[i].P119 = pulsars_over_head[i].P119;
+                                            ReadPulseStruct.pulsars_over_head[i].jy = pulsars_over_head[i].jy;
+                                            BITMAPINFO binfPicPulsar;
+       	                                    memset((void*)&binfPicPulsar,0,sizeof(binfPicPulsar));
+                                            RECT myRect;
+
+                                            HDC         hDC;                    
+                                            hDC = ::GetDC(NULL); 
+ 		                                    // create bitmap from DIB info. and bits 
+                                            switch(i)
+                                            {
+                                            case 0:  if (hBmpPicPulsar1!=NULL) DeleteObject(hBmpPicPulsar1); m_PicPulse1.GetWindowRect(&myRect);break;
+                                            case 1:  if (hBmpPicPulsar2!=NULL) DeleteObject(hBmpPicPulsar2); m_PicPulse2.GetWindowRect(&myRect);break;
+                                            case 2:  if (hBmpPicPulsar3!=NULL) DeleteObject(hBmpPicPulsar3); m_PicPulse3.GetWindowRect(&myRect);break;
+                                            case 3:  if (hBmpPicPulsar4!=NULL) DeleteObject(hBmpPicPulsar4); m_PicPulse4.GetWindowRect(&myRect);break;
+                                            case 4:  if (hBmpPicPulsar5!=NULL) DeleteObject(hBmpPicPulsar5); m_PicPulse5.GetWindowRect(&myRect);break;
+                                            case 5:  if (hBmpPicPulsar6!=NULL) DeleteObject(hBmpPicPulsar6); m_PicPulse6.GetWindowRect(&myRect);break;
+                                            }
+
+		                                    binfPicPulsar.bmiHeader.biSize = sizeof (BITMAPINFOHEADER);
+                                            binfPicPulsar.bmiHeader.biWidth = bRGBImageW_S;//read_image_width; 
+                                            binfPicPulsar.bmiHeader.biHeight = bRGBImageH_S;//read_image_height; 
+		                                    binfPicPulsar.bmiHeader.biPlanes = 1; 
+		                                    binfPicPulsar.bmiHeader.biBitCount = 24; 
+		                                    binfPicPulsar.bmiHeader.biCompression = BI_RGB; 
+		                                    binfPicPulsar.bmiHeader.biSizeImage = 0; 
+		                                    binfPicPulsar.bmiHeader.biXPelsPerMeter = 0; 
+		                                    binfPicPulsar.bmiHeader.biYPelsPerMeter = 0; 
+		                                    binfPicPulsar.bmiHeader.biClrUsed = 0; 
+		                                    binfPicPulsar.bmiHeader.biClrImportant = 0; 
+                                            char szText[3*MAX_PATH];
+                                            sprintf(szText, "%s %1.3f (%d)",OUtPutPulseStruct.pulsars_over_head[i].szN, 
+                                                    OUtPutPulseStruct.pulsars_over_head[i].px, (int)OUtPutPulseStruct.pulsars_over_head[i].jy);
+
+                                            switch(i)
+                                            {
+                                            case 0: 
+                                                hBmpPicPulsar1 = CreateDIBitmap(hDC, &(binfPicPulsar.bmiHeader), CBM_INIT, bRGBImage_S1, &binfPicPulsar, DIB_RGB_COLORS); 
+                                                m_PicPulse1.SetBitmap(hBmpPicPulsar1); m_PicPulse1.GetWindowRect(&myRect); m_PicPulse1.ValidateRect(&myRect);
+                                                m_PicPulse1.UpdateWindow();
+                                                m_Period1.SetWindowTextA(szText);
+                                                break;
+                                            case 1: 
+                                                hBmpPicPulsar2 = CreateDIBitmap(hDC, &(binfPicPulsar.bmiHeader), CBM_INIT, bRGBImage_S2, &binfPicPulsar, DIB_RGB_COLORS); 
+                                                m_PicPulse2.SetBitmap(hBmpPicPulsar2); m_PicPulse2.GetWindowRect(&myRect); m_PicPulse2.ValidateRect(&myRect);
+                                                m_PicPulse2.UpdateWindow();
+                                                m_Period2.SetWindowTextA(szText);
+                                                break;
+                                            case 2: 
+                                                hBmpPicPulsar3 = CreateDIBitmap(hDC, &(binfPicPulsar.bmiHeader), CBM_INIT, bRGBImage_S3, &binfPicPulsar, DIB_RGB_COLORS); 
+                                                m_PicPulse3.SetBitmap(hBmpPicPulsar3); m_PicPulse3.GetWindowRect(&myRect); m_PicPulse3.ValidateRect(&myRect);
+                                                m_PicPulse3.UpdateWindow();
+                                                m_Period3.SetWindowTextA(szText);
+                                                break;
+                                            case 3: 
+                                                hBmpPicPulsar4 = CreateDIBitmap(hDC, &(binfPicPulsar.bmiHeader), CBM_INIT, bRGBImage_S4, &binfPicPulsar, DIB_RGB_COLORS); 
+                                                m_PicPulse4.SetBitmap(hBmpPicPulsar4); m_PicPulse4.GetWindowRect(&myRect); m_PicPulse4.ValidateRect(&myRect);
+                                                m_PicPulse4.UpdateWindow();
+                                                m_Period4.SetWindowTextA(szText);
+                                                break;
+                                            case 4: 
+                                                hBmpPicPulsar5 = CreateDIBitmap(hDC, &(binfPicPulsar.bmiHeader), CBM_INIT, bRGBImage_S5, &binfPicPulsar, DIB_RGB_COLORS); 
+                                                m_PicPulse5.SetBitmap(hBmpPicPulsar5); m_PicPulse5.GetWindowRect(&myRect); m_PicPulse5.ValidateRect(&myRect);
+                                                m_PicPulse5.UpdateWindow();
+                                                m_Period5.SetWindowTextA(szText);
+                                                break;
+                                            case 5: 
+                                                hBmpPicPulsar6 = CreateDIBitmap(hDC, &(binfPicPulsar.bmiHeader), CBM_INIT, bRGBImage_S6, &binfPicPulsar, DIB_RGB_COLORS); 
+                                                m_PicPulse6.SetBitmap(hBmpPicPulsar6); m_PicPulse6.GetWindowRect(&myRect); m_PicPulse6.ValidateRect(&myRect);
+                                                m_PicPulse6.UpdateWindow();
+                                                m_Period6.SetWindowTextA(szText);
+                                                break;
+                                            }
+		                                    ::ReleaseDC(NULL, hDC); 
                                         }
                                     }
                                 }
@@ -1467,7 +1708,7 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                                         ReadPulseStruct.pulsars_over_head[i].P119 = pulsars_over_head[i].P119;
                                     }
                                 }
-                                AudioStreamCallback(NULL,&WAVEHDRMainRead);
+                                AudioStreamCallback(NULL,&WAVEHDRMainRead, TRUE);
                                 g_reacordCurPos = _ftelli64(MyOutPutFIle);
                                 CTime MyTime = CTime(ReadPulseStruct.myShowSysTime);
                                 m_Time.SetTime(&MyTime);
@@ -1487,10 +1728,10 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
             if (MyOutPutFIle != NULL)
             {
                 // needs to confirm position of a pulsars
-                if (CallTraToConfirmation())
-                {
-                    GetCurentPulsarsData();
-                }
+                //if (CallTraToConfirmation())
+                //{
+                //    GetCurentPulsarsData();
+                //}
             }
         }
         else
@@ -1508,6 +1749,7 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                     strcpy(OUtPutPulseStruct.pulsars_over_head[i].szN, pulsars_over_head[i].szN);
                     OUtPutPulseStruct.pulsars_over_head[i].P0 = pulsars_over_head[i].P0;
                     OUtPutPulseStruct.pulsars_over_head[i].P119 = pulsars_over_head[i].P119;
+                    OUtPutPulseStruct.pulsars_over_head[i].jy = pulsars_over_head[i].jy;
                 }
             }
         }
@@ -1677,4 +1919,21 @@ void CpulseMonitorDlg::OnLbnSelchangeListZone()
     m_Zone.GetText(isel, MyString0);
     iZoneBias = atoi(MyString0.GetString());
 
+}
+
+
+void CpulseMonitorDlg::OnBnClickedButtonClear()
+{
+    // TODO: Add your control notification handler code here
+    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2; il++)
+    {
+        BUFEDETECT1[il] = 0.0; BUFEDETECT2[il] = 0.0; BUFEDETECT3[il] = 0.0;
+        BUFEDETECT4[il] = 0.0; BUFEDETECT5[il] = 0.0; BUFEDETECT6[il] = 0.0;
+    }
+    iPosIn1 = 0; Pmin1_1 = 1.0e64; Pmax1_1=-1.0e64; Pmin2_1 = 1.0e64; Pmax2_1=-1.0e64;
+    iPosIn2 = 0; Pmin1_2 = 1.0e64; Pmax1_2=-1.0e64; Pmin2_2 = 1.0e64; Pmax2_2=-1.0e64;
+    iPosIn3 = 0;  Pmin1_3 = 1.0e64; Pmax1_3=-1.0e64; Pmin2_3 = 1.0e64; Pmax2_3=-1.0e64;
+    iPosIn4 = 0; Pmin1_4 = 1.0e64; Pmax1_4=-1.0e64; Pmin2_4 = 1.0e64; Pmax2_4=-1.0e64;
+    iPosIn5 = 0; Pmin1_5 = 1.0e64; Pmax1_5=-1.0e64; Pmin2_5 = 1.0e64; Pmax2_5=-1.0e64;
+    iPosIn6 = 0; Pmin1_6 = 1.0e64; Pmax1_6=-1.0e64; Pmin2_6 = 1.0e64; Pmax2_6=-1.0e64;
 }

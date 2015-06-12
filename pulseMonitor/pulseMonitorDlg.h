@@ -37,6 +37,12 @@ public:
     int m_FractionsPerScreen;
     SYSTEMTIME myShowSysTime;
     HBITMAP hBmpMainSignal ;
+    HBITMAP hBmpPicPulsar1 ;
+    HBITMAP hBmpPicPulsar2 ;
+    HBITMAP hBmpPicPulsar3 ;
+    HBITMAP hBmpPicPulsar4 ;
+    HBITMAP hBmpPicPulsar5 ;
+    HBITMAP hBmpPicPulsar6 ;
     BOOL flRunningRecording;
     void SetRead();
     void SetWrite();
@@ -91,4 +97,11 @@ public:
     afx_msg void OnBnClickedButtonSelectFile();
     CListBox m_Zone;
     afx_msg void OnLbnSelchangeListZone();
+    CStatic m_PicPulse1;
+    CStatic m_PicPulse2;
+    CStatic m_PicPulse3;
+    CStatic m_PicPulse4;
+    CStatic m_PicPulse5;
+    CStatic m_PicPulse6;
+    afx_msg void OnBnClickedButtonClear();
 };
