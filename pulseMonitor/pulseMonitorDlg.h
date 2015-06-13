@@ -104,4 +104,12 @@ public:
     CStatic m_PicPulse5;
     CStatic m_PicPulse6;
     afx_msg void OnBnClickedButtonClear();
+    afx_msg void OnBnClickedButtonCleanFq1();
+    afx_msg void OnBnClickedButtonCleanFq2();
+    afx_msg void OnBnClickedButtonCleanFq3();
+    afx_msg void OnBnClickedButtonCleanFq4();
+    afx_msg void OnBnClickedButtonCleanFq5();
+    afx_msg void OnBnClickedButtonCleanFq6();
+    CButton m_NumberChan;
+    afx_msg void OnBnClickedCheckNCh();
 };

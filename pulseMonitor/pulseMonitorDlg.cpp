@@ -107,6 +107,7 @@ void CpulseMonitorDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_STATIC_FQ4_PIC, m_PicPulse4);
     DDX_Control(pDX, IDC_STATIC_FQ5_PIC, m_PicPulse5);
     DDX_Control(pDX, IDC_STATIC_FQ6_PIC, m_PicPulse6);
+    DDX_Control(pDX, IDC_CHECK_N_CH, m_NumberChan);
 }
 
 BEGIN_MESSAGE_MAP(CpulseMonitorDlg, CDialogEx)
@@ -126,9 +127,17 @@ BEGIN_MESSAGE_MAP(CpulseMonitorDlg, CDialogEx)
     ON_BN_CLICKED(IDC_BUTTON_SELECT_FILE, &CpulseMonitorDlg::OnBnClickedButtonSelectFile)
     ON_LBN_SELCHANGE(IDC_LIST_ZONE, &CpulseMonitorDlg::OnLbnSelchangeListZone)
     ON_BN_CLICKED(IDC_BUTTON_CLEAR, &CpulseMonitorDlg::OnBnClickedButtonClear)
+    ON_BN_CLICKED(IDC_BUTTON_CLEAN_FQ1, &CpulseMonitorDlg::OnBnClickedButtonCleanFq1)
+    ON_BN_CLICKED(IDC_BUTTON_CLEAN_FQ2, &CpulseMonitorDlg::OnBnClickedButtonCleanFq2)
+    ON_BN_CLICKED(IDC_BUTTON_CLEAN_FQ3, &CpulseMonitorDlg::OnBnClickedButtonCleanFq3)
+    ON_BN_CLICKED(IDC_BUTTON_CLEAN_FQ4, &CpulseMonitorDlg::OnBnClickedButtonCleanFq4)
+    ON_BN_CLICKED(IDC_BUTTON_CLEAN_FQ5, &CpulseMonitorDlg::OnBnClickedButtonCleanFq5)
+    ON_BN_CLICKED(IDC_BUTTON_CLEAN_FQ6, &CpulseMonitorDlg::OnBnClickedButtonCleanFq6)
+    ON_BN_CLICKED(IDC_CHECK_N_CH, &CpulseMonitorDlg::OnBnClickedCheckNCh)
 END_MESSAGE_MAP()
 
 
+    int g_numb_ch = 2;
 	PCMWAVEFORMAT format;
     LPHWAVEIN m_hWaveIn;
     BOOL fInsideCallBack = FALSE;
@@ -137,13 +146,14 @@ END_MESSAGE_MAP()
 //#define SAMPLES_PER_SEC 44100
 #define SAMPLES_PER_SEC 250000
 #define NUMBER_OF_CHANNELS 2
-    char BUFERSND0_0[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2];
-    char BUFERSND0_1[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2];
+#define BYTES_PER_SAMPLE 2
+    char BUFERSND0_0[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*BYTES_PER_SAMPLE];
+    char BUFERSND0_1[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*BYTES_PER_SAMPLE];
 
-	char BUFERSND1_0[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2];
-    char BUFERSND1_1[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2];
+	char BUFERSND1_0[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*BYTES_PER_SAMPLE];
+    char BUFERSND1_1[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*BYTES_PER_SAMPLE];
 
-    char BUFERREAD[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2];
+    char BUFERREAD[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*BYTES_PER_SAMPLE];
 	BOOL DOStop =  FALSE;
 	WAVEHDR WaveHdr_0;
     WAVEHDR WaveHdr_1;
@@ -185,55 +195,69 @@ unsigned char PiCRGBGreen[3] = {0x00,0xff,0x00};
 
 #define IMAGE_W_S 512
 #define IMAGE_H_S 64
+#define MAX_PERIOD_IN_SEC 2
 //int RGBReferenceBody = EARTH;
 unsigned char bRGBImage_S1[IMAGE_W_S*IMAGE_H_S*3];
-long double BUFEDETECT1[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2];
+long double BUFEDETECT1[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*MAX_PERIOD_IN_SEC];
 long iPosIn1;
 long double Pmin1_1= 1.0e64;
 long double Pmax1_1=-1.0e64;
 long double Pmin2_1= 1.0e64;
 long double Pmax2_1=-1.0e64;
+BOOL CleanRQ1 = FALSE;
+long double Fraction1 = 0.0;
 
 unsigned char bRGBImage_S2[IMAGE_W_S*IMAGE_H_S*3];
-long double BUFEDETECT2[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2];
+long double BUFEDETECT2[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*MAX_PERIOD_IN_SEC];
 long iPosIn2;
 long double Pmin1_2= 1.0e64;
 long double Pmax1_2=-1.0e64;
 long double Pmin2_2= 1.0e64;
 long double Pmax2_2=-1.0e64;
+BOOL CleanRQ2 = FALSE;
+long double Fraction2 = 0.0;
+
 unsigned char bRGBImage_S3[IMAGE_W_S*IMAGE_H_S*3];
-long double BUFEDETECT3[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2];
+long double BUFEDETECT3[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*MAX_PERIOD_IN_SEC];
 long iPosIn3;
 long double Pmin1_3= 1.0e64;
 long double Pmax1_3=-1.0e64;
 long double Pmin2_3= 1.0e64;
 long double Pmax2_3=-1.0e64;
+BOOL CleanRQ3 = FALSE;
+long double Fraction3 = 0.0;
 
 unsigned char bRGBImage_S4[IMAGE_W_S*IMAGE_H_S*3];
-long double BUFEDETECT4[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2];
+long double BUFEDETECT4[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*MAX_PERIOD_IN_SEC];
 long iPosIn4;
 long double Pmin1_4= 1.0e64;
 long double Pmax1_4=-1.0e64;
 long double Pmin2_4= 1.0e64;
 long double Pmax2_4=-1.0e64;
+BOOL CleanRQ4 = FALSE;
+long double Fraction4 = 0.0;
 
 unsigned char bRGBImage_S5[IMAGE_W_S*IMAGE_H_S*3];
-long double BUFEDETECT5[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2];
+long double BUFEDETECT5[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*MAX_PERIOD_IN_SEC];
 long iPosIn5;
 long double Pmin1_5= 1.0e64;
 long double Pmax1_5=-1.0e64;
 long double Pmin2_5= 1.0e64;
 long double Pmax2_5=-1.0e64;
+BOOL CleanRQ5 = FALSE;
+long double Fraction5 = 0.0;
 
 unsigned char bRGBImage_S6[IMAGE_W_S*IMAGE_H_S*3];
-long double BUFEDETECT6[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2];
+long double BUFEDETECT6[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*MAX_PERIOD_IN_SEC];
 long iPosIn6;
 long double Pmin1_6= 1.0e64;
 long double Pmax1_6=-1.0e64;
 long double Pmin2_6= 1.0e64;
 long double Pmax2_6=-1.0e64;
+BOOL CleanRQ6 = FALSE;
+long double Fraction6 = 0.0;
 
-long double BUFEDETECTtmp[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2];
+long double BUFEDETECTtmp[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*MAX_PERIOD_IN_SEC];
 long double Pmin1_tmp= -12345678;
 long double Pmax1_tmp;
 long double Pmin2_tmp;
@@ -384,13 +408,18 @@ LRESULT CALLBACK AudioStreamCallback(HWND hwndC,LPWAVEHDR lpWAVEHDR, BOOL flProc
     {
         if (iMaxMeasures)
         {
+            int iiMaxMeasures = iMaxMeasures;
+            if (iiMaxMeasures >= 6)
+                iiMaxMeasures = 6;
                                         // pulsars on top of head
-            
-            for (int j = 0; j < iMaxMeasures; j++)
+            for (int j = 0; j < iiMaxMeasures; j++)
             {
                 BOOL WasProcessed = FALSE;
-                long double dLenOfPuls = SAMPLES_PER_SEC * pulsars_over_head[j].px;
+                long double dLenOfPuls = SAMPLES_PER_SEC * (pulsars_over_head[j].px);// + 0.33333333);
                 long iLenOfPuls = dLenOfPuls;
+                long double FraDbl = dLenOfPuls - (long double)iLenOfPuls;
+                long double *pFraction = NULL;
+                
                 long iStart = 0;
                 long double *dIntegralVal = NULL;
                 long double *dIntegralVal0 = NULL;
@@ -399,49 +428,87 @@ LRESULT CALLBACK AudioStreamCallback(HWND hwndC,LPWAVEHDR lpWAVEHDR, BOOL flProc
                 long double ldMin2=1.0e+64;
                 long double ldMax2=-1.0e+64;
                 unsigned char *bRGBImage_S= NULL;
+                long iTemp;
+                BOOL *CleanREQ = NULL;
 
 
                 switch (j)
                 {
-                case 0: iStart = iPosIn1; ldMin1 = Pmin1_1; ldMax1 = Pmax1_1; ldMin2 = Pmin2_1; ldMax2 = Pmax2_1;
+                case 0: iStart = iPosIn1; ldMin1 = Pmin1_1; ldMax1 = Pmax1_1; ldMin2 = Pmin2_1; ldMax2 = Pmax2_1; CleanREQ= &CleanRQ1;
+                        pFraction = &Fraction1;
                         dIntegralVal0 = &BUFEDETECT1[0];dIntegralVal = &BUFEDETECT1[iStart*2];bRGBImage_S = &bRGBImage_S1[0];break;
-                case 1: iStart = iPosIn2; ldMin1 = Pmin1_2; ldMax1 = Pmax1_2; ldMin2 = Pmin2_2; ldMax2 = Pmax2_2;
+                case 1: iStart = iPosIn2; ldMin1 = Pmin1_2; ldMax1 = Pmax1_2; ldMin2 = Pmin2_2; ldMax2 = Pmax2_2;CleanREQ= &CleanRQ2;
+                        pFraction = &Fraction2;
                         dIntegralVal0 = &BUFEDETECT2[0];dIntegralVal = &BUFEDETECT2[iStart*2];bRGBImage_S = &bRGBImage_S2[0];break;
-                case 2: iStart = iPosIn3; ldMin1 = Pmin1_3; ldMax1 = Pmax1_3; ldMin2 = Pmin2_3; ldMax2 = Pmax2_3;
+                case 2: iStart = iPosIn3; ldMin1 = Pmin1_3; ldMax1 = Pmax1_3; ldMin2 = Pmin2_3; ldMax2 = Pmax2_3;CleanREQ= &CleanRQ3;
+                        pFraction = &Fraction3;
                         dIntegralVal0 = &BUFEDETECT3[0];dIntegralVal = &BUFEDETECT3[iStart*2];bRGBImage_S = &bRGBImage_S3[0];break;
-                case 3: iStart = iPosIn4; ldMin1 = Pmin1_4; ldMax1 = Pmax1_4; ldMin2 = Pmin2_4; ldMax2 = Pmax2_4;
+                case 3: iStart = iPosIn4; ldMin1 = Pmin1_4; ldMax1 = Pmax1_4; ldMin2 = Pmin2_4; ldMax2 = Pmax2_4;CleanREQ= &CleanRQ4;
+                        pFraction = &Fraction4;
                         dIntegralVal0 = &BUFEDETECT4[0];dIntegralVal = &BUFEDETECT4[iStart*2];bRGBImage_S = &bRGBImage_S4[0];break;
-                case 4: iStart = iPosIn5; ldMin1 = Pmin1_5; ldMax1 = Pmax1_5; ldMin2 = Pmin2_5; ldMax2 = Pmax2_5;
+                case 4: iStart = iPosIn5; ldMin1 = Pmin1_5; ldMax1 = Pmax1_5; ldMin2 = Pmin2_5; ldMax2 = Pmax2_5;CleanREQ= &CleanRQ5;
+                        pFraction = &Fraction5;
                         dIntegralVal0 = &BUFEDETECT5[0];dIntegralVal = &BUFEDETECT5[iStart*2];bRGBImage_S = &bRGBImage_S5[0];break;
-                case 5: iStart = iPosIn6; ldMin1 = Pmin1_6; ldMax1 = Pmax1_6; ldMin2 = Pmin2_6; ldMax2 = Pmax2_6;
+                case 5: iStart = iPosIn6; ldMin1 = Pmin1_6; ldMax1 = Pmax1_6; ldMin2 = Pmin2_6; ldMax2 = Pmax2_6;CleanREQ= &CleanRQ6;
+                        pFraction = &Fraction6;
                         dIntegralVal0 = &BUFEDETECT6[0];dIntegralVal = &BUFEDETECT6[iStart*2];bRGBImage_S = &bRGBImage_S6[0];break;
                 }
+                *pFraction += FraDbl; iTemp = *pFraction; 
                 for (long i = 0; i < lpWAVEHDR->dwBufferLength; i+=NUMBER_OF_CHANNELS*2)
                 {
                     signed short iVal1 = *(signed short *)&lpWAVEHDR->lpData[i];
                     signed short iVal2 = *(signed short *)&lpWAVEHDR->lpData[i+2];
                     *(dIntegralVal) +=iVal1;
-                    if (*(dIntegralVal) < ldMin1)
-                        ldMin1 = *(dIntegralVal);
-                    if (*(dIntegralVal) >= ldMax1)
-                        ldMax1 = *(dIntegralVal);
-                    dIntegralVal++;
-                    *(dIntegralVal) +=iVal2;
-                    if (*(dIntegralVal) < ldMin2)
-                        ldMin2 = *(dIntegralVal);
-                    if (*(dIntegralVal) >= ldMax2)
-                        ldMax2 = *(dIntegralVal);
+                    if (g_numb_ch == 1)
+                    {
+                        *(dIntegralVal) -=iVal2;
+                        if (*(dIntegralVal) < ldMin1)
+                            ldMin1 = *(dIntegralVal);
+                        if (*(dIntegralVal) >= ldMax1)
+                            ldMax1 = *(dIntegralVal);
+                        dIntegralVal++;
+                        dIntegralVal++;
+                    }
+                    else
+                    {
+                        if (*(dIntegralVal) < ldMin1)
+                            ldMin1 = *(dIntegralVal);
+                        if (*(dIntegralVal) >= ldMax1)
+                            ldMax1 = *(dIntegralVal);
+                    
+                        dIntegralVal++;
+                        *(dIntegralVal) +=iVal2;
+                        if (*(dIntegralVal) < ldMin2)
+                            ldMin2 = *(dIntegralVal);
+                        if (*(dIntegralVal) >= ldMax2)
+                            ldMax2 = *(dIntegralVal);
+                        dIntegralVal++;
+                    }
 
-                    dIntegralVal++;
                     if (++iStart > iLenOfPuls)
                     {
+                        int iiTemp = iTemp;
+                        while(iiTemp--)
+                        {
+                            dIntegralVal++;dIntegralVal++;
+                        }
+                        *pFraction -= (long double) iTemp;
+
                         memcpy(BUFEDETECTtmp, dIntegralVal0, sizeof(BUFEDETECTtmp));
                         Pmin1_tmp= ldMin1; Pmax1_tmp = ldMax1; Pmin2_tmp = ldMin2; Pmax2_tmp = ldMax2;
-
+                        *pFraction += FraDbl; iTemp = *pFraction;// *pFraction -= (long double) iTemp;
                         iStart = 0;
                         dIntegralVal = dIntegralVal0;
                         ldMin1 = 1.0e64; ldMax1 = -1.0e64; ldMin2 = 1.0e64; ldMax2 = -1.0e64;
                         WasProcessed = TRUE;
+                        if (*CleanREQ)
+                        {
+                            for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*MAX_PERIOD_IN_SEC; il++)
+                            {
+                                dIntegralVal[il] = 0;
+                            }
+                            *CleanREQ = FALSE;
+                        }
                     }
                 }
                 if (WasProcessed)
@@ -453,12 +520,27 @@ LRESULT CALLBACK AudioStreamCallback(HWND hwndC,LPWAVEHDR lpWAVEHDR, BOOL flProc
                     for (long io = 0; io < iLenOfPuls; io++)
                     {
                         int iX = bRGBImageW_S * (long double) io / (long double)iLenOfPuls;
-                        int iY = (*dIntegralVal - Pmin1_tmp)/ ldDifs1*bRGBImageH_S/2;
-                        putpixelS(bRGBImage_S,PiCRGBGreen, iX, bRGBImageH_S/2 - iY);
-                        dIntegralVal++;
-                        iY = (*dIntegralVal - Pmin2_tmp)/ ldDifs2*bRGBImageH_S/2;
-                        putpixelS(bRGBImage_S,PiCRGBGreen, iX, bRGBImageH_S - iY);
-                        dIntegralVal++;
+                        if (g_numb_ch == 1)
+                        {
+                            int iY = (*dIntegralVal - Pmin1_tmp)/ ldDifs1*bRGBImageH_S;
+                            if (*dIntegralVal == Pmin1_tmp)
+                                putpixelS(bRGBImage_S,PiCRGBBlue, iX, bRGBImageH_S - iY);
+                            else if  (*dIntegralVal == Pmax1_tmp)
+                                putpixelS(bRGBImage_S,PiCRGBBlue, iX, bRGBImageH_S - iY+1);
+                            else
+                                putpixelS(bRGBImage_S,PiCRGBGreen, iX, bRGBImageH_S - iY);
+                            dIntegralVal++;
+                            dIntegralVal++;
+                        }
+                        else
+                        {
+                            int iY = (*dIntegralVal - Pmin1_tmp)/ ldDifs1*bRGBImageH_S/2;
+                            putpixelS(bRGBImage_S,PiCRGBGreen, iX, bRGBImageH_S/2 - iY);
+                            dIntegralVal++;
+                            int iiY = (*dIntegralVal - Pmin2_tmp)/ ldDifs2*bRGBImageH_S/2;
+                            putpixelS(bRGBImage_S,PiCRGBGreen, iX, bRGBImageH_S - iiY);
+                            dIntegralVal++;
+                        }
                     }
                 }
                 switch(j)
@@ -853,6 +935,10 @@ void ParamCommon(char *szString)
         IF_XML_ELEMENT(P119)
         {
             pulsars_over_head[iMaxMeasures-1].P119 =atof(pszQuo);
+        }
+        IF_XML_ELEMENT(na)
+        {
+            pulsars_over_head[iMaxMeasures-1].TError =atof(pszQuo);
         }
     XML_GROUP_END
 
@@ -1286,6 +1372,9 @@ BOOL CpulseMonitorDlg::OnInitDialog()
     SetTimer(902,60500,NULL);
     m_LocalFile.SetWindowTextA(szOutPutREcording);
 
+    m_NumberChan.SetCheck(1);
+    g_numb_ch = 2;
+
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -1421,10 +1510,11 @@ void CpulseMonitorDlg::OnNMCustomdrawSlider1(NMHDR *pNMHDR, LRESULT *pResult)
     {
         if (MyOutPutFIle != NULL)
         {
+            /*
             g_reacordCurPos = g_reacordMAxSize*iPosSlide;
             g_reacordCurPos /=iMaxSlide;
              _fseeki64( MyOutPutFIle, g_reacordCurPos, SEEK_SET);
-            for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2; il++)
+            for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*MAX_PERIOD_IN_SEC; il++)
             {
                 BUFEDETECT1[il] = 0.0; BUFEDETECT2[il] = 0.0; BUFEDETECT3[il] = 0.0;
                 BUFEDETECT4[il] = 0.0; BUFEDETECT5[il] = 0.0; BUFEDETECT6[il] = 0.0;
@@ -1435,6 +1525,7 @@ void CpulseMonitorDlg::OnNMCustomdrawSlider1(NMHDR *pNMHDR, LRESULT *pResult)
             iPosIn4 = 0; Pmin1_4 = 1.0e64; Pmax1_4=-1.0e64; Pmin2_4 = 1.0e64; Pmax2_4=-1.0e64;
             iPosIn5 = 0; Pmin1_5 = 1.0e64; Pmax1_5=-1.0e64; Pmin2_5 = 1.0e64; Pmax2_5=-1.0e64;
             iPosIn6 = 0; Pmin1_6 = 1.0e64; Pmax1_6=-1.0e64; Pmin2_6 = 1.0e64; Pmax2_6=-1.0e64;
+            */
         }
     }
     *pResult = 0;
@@ -1541,7 +1632,7 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                                 if (FirstRead==FALSE)
                                 {
                                     FirstRead = TRUE;
-                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2*2; il++)
+                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*MAX_PERIOD_IN_SEC; il++)
                                     {
                                         BUFEDETECT1[il] = 0.0;
                                         BUFEDETECT2[il] = 0.0;
@@ -1551,6 +1642,7 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                                         BUFEDETECT6[il] = 0.0;
                                     }
                                     iPosIn1 = 0; iPosIn2 = 0; iPosIn3 = 0; iPosIn4 = 0; iPosIn5 = 0; iPosIn6 = 0;
+                                    Fraction1 = 0.0; Fraction2 = 0.0; Fraction3 = 0.0; Fraction4 = 0.0; Fraction5 = 0.0; Fraction6 = 0.0;
                                     Pmin1_1 = 1.0e64; Pmax1_1=-1.0e64; Pmin2_1 = 1.0e64; Pmax2_1=-1.0e64;
                                     Pmin1_2 = 1.0e64; Pmax1_2=-1.0e64; Pmin2_2 = 1.0e64; Pmax2_2=-1.0e64;
                                     Pmin1_3 = 1.0e64; Pmax1_3=-1.0e64; Pmin2_3 = 1.0e64; Pmax2_3=-1.0e64;
@@ -1576,6 +1668,7 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                                             OUtPutPulseStruct.pulsars_over_head[i].P0 = pulsars_over_head[i].P0;
                                             OUtPutPulseStruct.pulsars_over_head[i].P119 = pulsars_over_head[i].P119;
                                             OUtPutPulseStruct.pulsars_over_head[i].jy = pulsars_over_head[i].jy;
+                                            OUtPutPulseStruct.pulsars_over_head[i].TError = pulsars_over_head[i].TError;
 
                                             ReadPulseStruct.pulsars_over_head[i].NearBody = pulsars_over_head[i].NearBody;
                                             ReadPulseStruct.pulsars_over_head[i].T = pulsars_over_head[i].T;
@@ -1585,34 +1678,40 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                                                 switch(i)
                                                 {
                                                 case 0:
-                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2; il++)
+                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*MAX_PERIOD_IN_SEC; il++)
                                                         BUFEDETECT1[il] = 0.0;
                                                     iPosIn1 = 0; Pmin1_1 = 1.0e64; Pmax1_1=-1.0e64; Pmin2_1 = 1.0e64; Pmax2_1=-1.0e64;
+                                                    Fraction1 = 0.0;
                                                     break;
                                                 case 1:
-                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2; il++)
+                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*MAX_PERIOD_IN_SEC; il++)
                                                         BUFEDETECT2[il] = 0.0;
                                                     iPosIn2 = 0; Pmin1_2 = 1.0e64; Pmax1_2=-1.0e64; Pmin2_2 = 1.0e64; Pmax2_2=-1.0e64;
+                                                    Fraction2 = 0.0;
                                                     break;
                                                 case 2:
-                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2; il++)
+                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*MAX_PERIOD_IN_SEC; il++)
                                                         BUFEDETECT3[il] = 0.0;
                                                     iPosIn3 = 0;  Pmin1_3 = 1.0e64; Pmax1_3=-1.0e64; Pmin2_3 = 1.0e64; Pmax2_3=-1.0e64;
+                                                    Fraction3 = 0.0;
                                                     break;
                                                 case 3:
-                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2; il++)
+                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*MAX_PERIOD_IN_SEC; il++)
                                                         BUFEDETECT4[il] = 0.0;
                                                     iPosIn4 = 0; Pmin1_4 = 1.0e64; Pmax1_4=-1.0e64; Pmin2_4 = 1.0e64; Pmax2_4=-1.0e64;
+                                                    Fraction4 = 0.0;
                                                     break;
                                                 case 4:
-                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2; il++)
+                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*MAX_PERIOD_IN_SEC; il++)
                                                         BUFEDETECT5[il] = 0.0;
                                                     iPosIn5 = 0; Pmin1_5 = 1.0e64; Pmax1_5=-1.0e64; Pmin2_5 = 1.0e64; Pmax2_5=-1.0e64;
+                                                    Fraction5 = 0.0;
                                                     break;
                                                 case 5:
-                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2; il++)
+                                                    for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*MAX_PERIOD_IN_SEC; il++)
                                                         BUFEDETECT6[il] = 0.0;
                                                     iPosIn6 = 0; Pmin1_6 = 1.0e64; Pmax1_6=-1.0e64; Pmin2_6 = 1.0e64; Pmax2_6=-1.0e64;
+                                                    Fraction6 = 0.0;
                                                     break;
                                                 }
                                             }
@@ -1649,8 +1748,8 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
 		                                    binfPicPulsar.bmiHeader.biClrUsed = 0; 
 		                                    binfPicPulsar.bmiHeader.biClrImportant = 0; 
                                             char szText[3*MAX_PATH];
-                                            sprintf(szText, "%s %1.3f (%d)",OUtPutPulseStruct.pulsars_over_head[i].szN, 
-                                                    OUtPutPulseStruct.pulsars_over_head[i].px, (int)OUtPutPulseStruct.pulsars_over_head[i].jy);
+                                            sprintf(szText, "%s %1.3f (%d)%3.2f",OUtPutPulseStruct.pulsars_over_head[i].szN, 
+                                                OUtPutPulseStruct.pulsars_over_head[i].px, (int)OUtPutPulseStruct.pulsars_over_head[i].jy,OUtPutPulseStruct.pulsars_over_head[i].TError);
 
                                             switch(i)
                                             {
@@ -1925,6 +2024,8 @@ void CpulseMonitorDlg::OnLbnSelchangeListZone()
 void CpulseMonitorDlg::OnBnClickedButtonClear()
 {
     // TODO: Add your control notification handler code here
+    CleanRQ1 = TRUE; CleanRQ2 = TRUE; CleanRQ3 = TRUE; CleanRQ4 = TRUE; CleanRQ5 = TRUE; CleanRQ6 = TRUE;
+    /*
     for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*2; il++)
     {
         BUFEDETECT1[il] = 0.0; BUFEDETECT2[il] = 0.0; BUFEDETECT3[il] = 0.0;
@@ -1936,4 +2037,63 @@ void CpulseMonitorDlg::OnBnClickedButtonClear()
     iPosIn4 = 0; Pmin1_4 = 1.0e64; Pmax1_4=-1.0e64; Pmin2_4 = 1.0e64; Pmax2_4=-1.0e64;
     iPosIn5 = 0; Pmin1_5 = 1.0e64; Pmax1_5=-1.0e64; Pmin2_5 = 1.0e64; Pmax2_5=-1.0e64;
     iPosIn6 = 0; Pmin1_6 = 1.0e64; Pmax1_6=-1.0e64; Pmin2_6 = 1.0e64; Pmax2_6=-1.0e64;
+    */
+}
+
+
+void CpulseMonitorDlg::OnBnClickedButtonCleanFq1()
+{
+    // TODO: Add your control notification handler code here
+    CleanRQ1 = TRUE;
+}
+
+
+void CpulseMonitorDlg::OnBnClickedButtonCleanFq2()
+{
+    // TODO: Add your control notification handler code here
+    CleanRQ2 = TRUE;
+}
+
+
+void CpulseMonitorDlg::OnBnClickedButtonCleanFq3()
+{
+    // TODO: Add your control notification handler code here
+    CleanRQ3 = TRUE;
+}
+
+
+void CpulseMonitorDlg::OnBnClickedButtonCleanFq4()
+{
+    // TODO: Add your control notification handler code here
+    CleanRQ4 = TRUE;
+}
+
+
+void CpulseMonitorDlg::OnBnClickedButtonCleanFq5()
+{
+    // TODO: Add your control notification handler code here
+    CleanRQ5 = TRUE;
+}
+
+
+void CpulseMonitorDlg::OnBnClickedButtonCleanFq6()
+{
+    // TODO: Add your control notification handler code here
+    CleanRQ6 = TRUE;
+}
+
+
+void CpulseMonitorDlg::OnBnClickedCheckNCh()
+{
+    // TODO: Add your control notification handler code here
+    if (m_NumberChan.GetCheck())
+    {
+        g_numb_ch = 2;
+        m_NumberChan.SetWindowTextA("2ch");
+    }
+    else
+    {
+        g_numb_ch = 1;
+        m_NumberChan.SetWindowTextA("Dif");
+    }
 }
