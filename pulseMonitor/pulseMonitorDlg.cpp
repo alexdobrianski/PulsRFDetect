@@ -83,7 +83,7 @@ void CpulseMonitorDlg::DoDataExchange(CDataExchange* pDX)
     //  DDX_Control(pDX, IDC_STATIC_MAIN_SIGNAL, m_Signal);
     DDX_Control(pDX, IDC_STATIC_MAIN_SIGNAL, m_SIgnal);
     DDX_Control(pDX, IDC_SLIDER_MAIN, m_SLider);
-    DDX_Control(pDX, IDC_CHECK_DOTS_LINES, m_ShowLines);
+    //DDX_Control(pDX, IDC_CHECK_DOTS_LINES, m_ShowLines);
     DDX_Control(pDX, IDC_STATIC_FQ1, m_Period1);
     DDX_Control(pDX, IDC_STATIC_FQ2, m_Period2);
     DDX_Control(pDX, IDC_STATIC_FQ3, m_Period3);
@@ -108,6 +108,14 @@ void CpulseMonitorDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_STATIC_FQ5_PIC, m_PicPulse5);
     DDX_Control(pDX, IDC_STATIC_FQ6_PIC, m_PicPulse6);
     DDX_Control(pDX, IDC_CHECK_N_CH, m_NumberChan);
+    //  DDX_Control(pDX, IDC_BUTTON_SET_POS, m_SetPosition);
+    DDX_Control(pDX, IDC_BUTTON_SET_POS, m_SetPosition);
+    DDX_Control(pDX, IDC_EDIT_OFFSET_IN_FILE, m_OffsetPosition);
+    DDX_Control(pDX, IDC_EDIT_NO_LENIAR, m_TimeDelta);
+    DDX_Control(pDX, IDC_EDIT_MINIMUM, m_Minimum);
+    DDX_Control(pDX, IDC_EDIT_MAXIMUM, m_Maximum);
+    DDX_Control(pDX, IDC_EDIT_DB, m_CountDb);
+    DDX_Control(pDX, IDC_EDIT_CHN, m_ChanVis);
 }
 
 BEGIN_MESSAGE_MAP(CpulseMonitorDlg, CDialogEx)
@@ -134,7 +142,14 @@ BEGIN_MESSAGE_MAP(CpulseMonitorDlg, CDialogEx)
     ON_BN_CLICKED(IDC_BUTTON_CLEAN_FQ5, &CpulseMonitorDlg::OnBnClickedButtonCleanFq5)
     ON_BN_CLICKED(IDC_BUTTON_CLEAN_FQ6, &CpulseMonitorDlg::OnBnClickedButtonCleanFq6)
     ON_BN_CLICKED(IDC_CHECK_N_CH, &CpulseMonitorDlg::OnBnClickedCheckNCh)
+    ON_BN_CLICKED(IDC_BUTTON_SET_POS, &CpulseMonitorDlg::OnBnClickedButtonSetPos)
+    ON_BN_CLICKED(IDC_BUTTON_ANALIZE, &CpulseMonitorDlg::OnBnClickedButtonAnalize)
+    ON_BN_CLICKED(IDC_BUTTON_RUN_DB, &CpulseMonitorDlg::OnBnClickedButtonRunDb)
 END_MESSAGE_MAP()
+
+
+    long g_iTimeDelta = 0;
+    long g_iCountDB = 123456;
 
 
     int g_numb_ch = 2;
@@ -204,6 +219,10 @@ long double Pmin1_1= 1.0e64;
 long double Pmax1_1=-1.0e64;
 long double Pmin2_1= 1.0e64;
 long double Pmax2_1=-1.0e64;
+long double omin1_1= 1.0e64;
+long double omax1_1=-1.0e64;
+long double omin2_1= 1.0e64;
+long double omax2_1=-1.0e64;
 BOOL CleanRQ1 = FALSE;
 long double Fraction1 = 0.0;
 
@@ -214,6 +233,11 @@ long double Pmin1_2= 1.0e64;
 long double Pmax1_2=-1.0e64;
 long double Pmin2_2= 1.0e64;
 long double Pmax2_2=-1.0e64;
+long double omin1_2= 1.0e64;
+long double omax1_2=-1.0e64;
+long double omin2_2= 1.0e64;
+long double omax2_2=-1.0e64;
+
 BOOL CleanRQ2 = FALSE;
 long double Fraction2 = 0.0;
 
@@ -224,6 +248,11 @@ long double Pmin1_3= 1.0e64;
 long double Pmax1_3=-1.0e64;
 long double Pmin2_3= 1.0e64;
 long double Pmax2_3=-1.0e64;
+long double omin1_3= 1.0e64;
+long double omax1_3=-1.0e64;
+long double omin2_3= 1.0e64;
+long double omax2_3=-1.0e64;
+
 BOOL CleanRQ3 = FALSE;
 long double Fraction3 = 0.0;
 
@@ -234,6 +263,11 @@ long double Pmin1_4= 1.0e64;
 long double Pmax1_4=-1.0e64;
 long double Pmin2_4= 1.0e64;
 long double Pmax2_4=-1.0e64;
+long double omin1_4= 1.0e64;
+long double omax1_4=-1.0e64;
+long double omin2_4= 1.0e64;
+long double omax2_4=-1.0e64;
+
 BOOL CleanRQ4 = FALSE;
 long double Fraction4 = 0.0;
 
@@ -244,6 +278,11 @@ long double Pmin1_5= 1.0e64;
 long double Pmax1_5=-1.0e64;
 long double Pmin2_5= 1.0e64;
 long double Pmax2_5=-1.0e64;
+long double omin1_5= 1.0e64;
+long double omax1_5=-1.0e64;
+long double omin2_5= 1.0e64;
+long double omax2_5=-1.0e64;
+
 BOOL CleanRQ5 = FALSE;
 long double Fraction5 = 0.0;
 
@@ -254,6 +293,11 @@ long double Pmin1_6= 1.0e64;
 long double Pmax1_6=-1.0e64;
 long double Pmin2_6= 1.0e64;
 long double Pmax2_6=-1.0e64;
+long double omin1_6= 1.0e64;
+long double omax1_6=-1.0e64;
+long double omin2_6= 1.0e64;
+long double omax2_6=-1.0e64;
+
 BOOL CleanRQ6 = FALSE;
 long double Fraction6 = 0.0;
 
@@ -415,7 +459,7 @@ LRESULT CALLBACK AudioStreamCallback(HWND hwndC,LPWAVEHDR lpWAVEHDR, BOOL flProc
             for (int j = 0; j < iiMaxMeasures; j++)
             {
                 BOOL WasProcessed = FALSE;
-                long double dLenOfPuls = SAMPLES_PER_SEC * (pulsars_over_head[j].px);// + 0.33333333);
+                long double dLenOfPuls = SAMPLES_PER_SEC * (pulsars_over_head[j].px) + g_iTimeDelta;
                 long iLenOfPuls = dLenOfPuls;
                 long double FraDbl = dLenOfPuls - (long double)iLenOfPuls;
                 long double *pFraction = NULL;
@@ -430,27 +474,31 @@ LRESULT CALLBACK AudioStreamCallback(HWND hwndC,LPWAVEHDR lpWAVEHDR, BOOL flProc
                 unsigned char *bRGBImage_S= NULL;
                 long iTemp;
                 BOOL *CleanREQ = NULL;
+                long double *oMin1 = NULL;
+                long double *oMax1 = NULL;
+                long double *oMin2 = NULL;
+                long double *oMax2 = NULL;
 
 
                 switch (j)
                 {
                 case 0: iStart = iPosIn1; ldMin1 = Pmin1_1; ldMax1 = Pmax1_1; ldMin2 = Pmin2_1; ldMax2 = Pmax2_1; CleanREQ= &CleanRQ1;
-                        pFraction = &Fraction1;
+                        pFraction = &Fraction1;oMin1 = &omin1_1; oMax1 = &omax1_1; oMin2 = &omin2_1; oMax2 = &omax2_1;
                         dIntegralVal0 = &BUFEDETECT1[0];dIntegralVal = &BUFEDETECT1[iStart*2];bRGBImage_S = &bRGBImage_S1[0];break;
                 case 1: iStart = iPosIn2; ldMin1 = Pmin1_2; ldMax1 = Pmax1_2; ldMin2 = Pmin2_2; ldMax2 = Pmax2_2;CleanREQ= &CleanRQ2;
-                        pFraction = &Fraction2;
+                        pFraction = &Fraction2; oMin1 = &omin1_2; oMax1 = &omax1_2; oMin2 = &omin2_2; oMax2 = &omax2_2;
                         dIntegralVal0 = &BUFEDETECT2[0];dIntegralVal = &BUFEDETECT2[iStart*2];bRGBImage_S = &bRGBImage_S2[0];break;
                 case 2: iStart = iPosIn3; ldMin1 = Pmin1_3; ldMax1 = Pmax1_3; ldMin2 = Pmin2_3; ldMax2 = Pmax2_3;CleanREQ= &CleanRQ3;
-                        pFraction = &Fraction3;
+                        pFraction = &Fraction3; oMin1 = &omin1_3; oMax1 = &omax1_3; oMin2 = &omin2_3; oMax2 = &omax2_3;
                         dIntegralVal0 = &BUFEDETECT3[0];dIntegralVal = &BUFEDETECT3[iStart*2];bRGBImage_S = &bRGBImage_S3[0];break;
                 case 3: iStart = iPosIn4; ldMin1 = Pmin1_4; ldMax1 = Pmax1_4; ldMin2 = Pmin2_4; ldMax2 = Pmax2_4;CleanREQ= &CleanRQ4;
-                        pFraction = &Fraction4;
+                        pFraction = &Fraction4;oMin1 = &omin1_4; oMax1 = &omax1_4; oMin2 = &omin2_4; oMax2 = &omax2_4;
                         dIntegralVal0 = &BUFEDETECT4[0];dIntegralVal = &BUFEDETECT4[iStart*2];bRGBImage_S = &bRGBImage_S4[0];break;
                 case 4: iStart = iPosIn5; ldMin1 = Pmin1_5; ldMax1 = Pmax1_5; ldMin2 = Pmin2_5; ldMax2 = Pmax2_5;CleanREQ= &CleanRQ5;
-                        pFraction = &Fraction5;
+                        pFraction = &Fraction5;oMin1 = &omin1_5; oMax1 = &omax1_5; oMin2 = &omin2_5; oMax2 = &omax2_5;
                         dIntegralVal0 = &BUFEDETECT5[0];dIntegralVal = &BUFEDETECT5[iStart*2];bRGBImage_S = &bRGBImage_S5[0];break;
                 case 5: iStart = iPosIn6; ldMin1 = Pmin1_6; ldMax1 = Pmax1_6; ldMin2 = Pmin2_6; ldMax2 = Pmax2_6;CleanREQ= &CleanRQ6;
-                        pFraction = &Fraction6;
+                        pFraction = &Fraction6;oMin1 = &omin1_6; oMax1 = &omax1_6; oMin2 = &omin2_6; oMax2 = &omax2_6;
                         dIntegralVal0 = &BUFEDETECT6[0];dIntegralVal = &BUFEDETECT6[iStart*2];bRGBImage_S = &bRGBImage_S6[0];break;
                 }
                 *pFraction += FraDbl; iTemp = *pFraction; 
@@ -495,6 +543,7 @@ LRESULT CALLBACK AudioStreamCallback(HWND hwndC,LPWAVEHDR lpWAVEHDR, BOOL flProc
                         *pFraction -= (long double) iTemp;
 
                         memcpy(BUFEDETECTtmp, dIntegralVal0, sizeof(BUFEDETECTtmp));
+                        *oMin1 = ldMin1; *oMax1 = ldMax1; *oMin2 = ldMin2; *oMax2 = ldMax2;
                         Pmin1_tmp= ldMin1; Pmax1_tmp = ldMax1; Pmin2_tmp = ldMin2; Pmax2_tmp = ldMax2;
                         *pFraction += FraDbl; iTemp = *pFraction;// *pFraction -= (long double) iTemp;
                         iStart = 0;
@@ -1367,7 +1416,7 @@ BOOL CpulseMonitorDlg::OnInitDialog()
         }
     }
 
-    m_ShowLines.SetCheck(0);
+    //m_ShowLines.SetCheck(0);
     SetTimer(901, 1000,NULL);
     SetTimer(902,60500,NULL);
     m_LocalFile.SetWindowTextA(szOutPutREcording);
@@ -1375,6 +1424,8 @@ BOOL CpulseMonitorDlg::OnInitDialog()
     m_NumberChan.SetCheck(1);
     g_numb_ch = 2;
 
+    m_TimeDelta.SetWindowTextA("0");
+    m_CountDb.SetWindowTextA("123456");
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -1608,6 +1659,42 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                 while (ICOuntofOutOnScreen++ < g_SecondsPerScreen)
                 {
                     ReadPulseStruct.Signature = 0;
+                    if (g_iCountDB != 123456)
+                    {
+                        if (--g_iCountDB < 0)
+                        {
+                            if (flRecordOpenedForWrite == FALSE)
+                            {
+                                if (MyOutPutFIle!=NULL)    // reading old recordings
+                                {
+                                    if (flRunningRecording == TRUE)
+                                    {
+                                        flRunningRecording = FALSE;
+                                        m_Run.SetWindowTextA("run");
+                                        CString mystr;
+                                        m_ChanVis.GetWindowTextA(mystr);
+                                        char szmystr[64];
+                                        char szmystrmin[64];
+                                        char szmystrmax[64];
+                                        strcpy(szmystr, mystr.GetString());
+                                        int iCh = atoi(szmystr);
+                                        switch(iCh)
+                                        {
+                                        case 0: sprintf(szmystrmin, "%f", omin1_1); sprintf(szmystrmax, "%f", omax1_1); break;
+                                        case 1: sprintf(szmystrmin, "%f", omin1_2); sprintf(szmystrmax, "%f", omax1_2); break;
+                                        case 2: sprintf(szmystrmin, "%f", omin1_3); sprintf(szmystrmax, "%f", omax1_3); break;
+                                        case 3: sprintf(szmystrmin, "%f", omin1_4); sprintf(szmystrmax, "%f", omax1_4); break;
+                                        case 4: sprintf(szmystrmin, "%f", omin1_5); sprintf(szmystrmax, "%f", omax1_5); break;
+                                        case 5: sprintf(szmystrmin, "%f", omin1_6); sprintf(szmystrmax, "%f", omax1_6); break;
+                                        }
+                                        m_Minimum.SetWindowTextA(szmystrmin);
+                                        m_Maximum.SetWindowTextA(szmystrmax);
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
                     while(ReadPulseStruct.Signature != 0x01020304)
                     {
                         __int64  reacordCurPos = _ftelli64(MyOutPutFIle);
@@ -1958,6 +2045,17 @@ void CpulseMonitorDlg::OnBnClickedButtonrun()
     {
         flRunningRecording = FALSE;
         m_Run.SetWindowTextA("run");
+        if (flRecordOpenedForWrite == FALSE)
+        {
+            if (MyOutPutFIle!=NULL)    // reading old recordings
+            {
+                __int64  recordCurPos = _ftelli64(MyOutPutFIle);
+                char szOffset[64];
+                sprintf(szOffset, "%I64d", recordCurPos);
+                m_OffsetPosition.SetWindowTextA(szOffset);
+                g_iCountDB = 123456;
+            }
+        }
     }
     
 }
@@ -2096,4 +2194,113 @@ void CpulseMonitorDlg::OnBnClickedCheckNCh()
         g_numb_ch = 1;
         m_NumberChan.SetWindowTextA("Dif");
     }
+}
+
+
+void CpulseMonitorDlg::OnBnClickedButtonSetPos()
+{
+    // TODO: Add your control notification handler code here
+    if (flRecordOpenedForWrite == FALSE)
+    {
+        if (MyOutPutFIle!=NULL)    // reading old recordings
+        {
+            CString MyPos64;
+            m_OffsetPosition.GetWindowTextA(MyPos64);
+            char szText[64];
+            strcpy(szText, MyPos64.GetString());
+            __int64  recordCurPos =0;
+            sscanf(szText, "%I64d",&recordCurPos);
+            for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*MAX_PERIOD_IN_SEC; il++)
+            {
+                BUFEDETECT1[il] = 0.0; BUFEDETECT2[il] = 0.0; BUFEDETECT3[il] = 0.0;
+                BUFEDETECT4[il] = 0.0; BUFEDETECT5[il] = 0.0; BUFEDETECT6[il] = 0.0;
+            }
+            iPosIn1 = 0; iPosIn2 = 0; iPosIn3 = 0; iPosIn4 = 0; iPosIn5 = 0; iPosIn6 = 0;
+            Fraction1 = 0.0; Fraction2 = 0.0; Fraction3 = 0.0; Fraction4 = 0.0; Fraction5 = 0.0; Fraction6 = 0.0;
+            Pmin1_1 = 1.0e64; Pmax1_1=-1.0e64; Pmin2_1 = 1.0e64; Pmax2_1=-1.0e64;
+            Pmin1_2 = 1.0e64; Pmax1_2=-1.0e64; Pmin2_2 = 1.0e64; Pmax2_2=-1.0e64;
+            Pmin1_3 = 1.0e64; Pmax1_3=-1.0e64; Pmin2_3 = 1.0e64; Pmax2_3=-1.0e64;
+            Pmin1_4 = 1.0e64; Pmax1_4=-1.0e64; Pmin2_4 = 1.0e64; Pmax2_4=-1.0e64;
+            Pmin1_5 = 1.0e64; Pmax1_5=-1.0e64; Pmin2_5 = 1.0e64; Pmax2_5=-1.0e64;
+            Pmin1_6 = 1.0e64; Pmax1_6=-1.0e64; Pmin2_6 = 1.0e64; Pmax2_6=-1.0e64;
+            _fseeki64(MyOutPutFIle, recordCurPos, SEEK_SET);
+        }
+    }
+}
+
+
+void CpulseMonitorDlg::OnBnClickedButtonAnalize()
+{
+    // TODO: Add your control notification handler code here
+}
+
+
+void CpulseMonitorDlg::OnBnClickedButtonRunDb()
+{
+    // TODO: Add your control notification handler code here
+    if (flRunningRecording == FALSE)
+    {
+        flRunningRecording = TRUE;
+        m_Run.SetWindowTextA("stp");
+        if (flRecordOpenedForWrite == FALSE)
+        {
+            if (MyOutPutFIle!=NULL)    // reading old recordings
+            {
+                CString MyPos64;
+                m_OffsetPosition.GetWindowTextA(MyPos64);
+                char szText[64];
+                strcpy(szText, MyPos64.GetString());
+                __int64  recordCurPos =0;
+                sscanf(szText, "%I64d",&recordCurPos);
+                for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*MAX_PERIOD_IN_SEC; il++)
+                {
+                    BUFEDETECT1[il] = 0.0; BUFEDETECT2[il] = 0.0; BUFEDETECT3[il] = 0.0;
+                    BUFEDETECT4[il] = 0.0; BUFEDETECT5[il] = 0.0; BUFEDETECT6[il] = 0.0;
+                }
+                iPosIn1 = 0; iPosIn2 = 0; iPosIn3 = 0; iPosIn4 = 0; iPosIn5 = 0; iPosIn6 = 0;
+                Fraction1 = 0.0; Fraction2 = 0.0; Fraction3 = 0.0; Fraction4 = 0.0; Fraction5 = 0.0; Fraction6 = 0.0;
+                Pmin1_1 = 1.0e64; Pmax1_1=-1.0e64; Pmin2_1 = 1.0e64; Pmax2_1=-1.0e64;
+                Pmin1_2 = 1.0e64; Pmax1_2=-1.0e64; Pmin2_2 = 1.0e64; Pmax2_2=-1.0e64;
+                Pmin1_3 = 1.0e64; Pmax1_3=-1.0e64; Pmin2_3 = 1.0e64; Pmax2_3=-1.0e64;
+                Pmin1_4 = 1.0e64; Pmax1_4=-1.0e64; Pmin2_4 = 1.0e64; Pmax2_4=-1.0e64;
+                Pmin1_5 = 1.0e64; Pmax1_5=-1.0e64; Pmin2_5 = 1.0e64; Pmax2_5=-1.0e64;
+                Pmin1_6 = 1.0e64; Pmax1_6=-1.0e64; Pmin2_6 = 1.0e64; Pmax2_6=-1.0e64;
+
+                omin1_1 = 0.0; omax1_1=0.0; omin2_1 = 0.0; omax2_1=0.0;
+                omin1_2 = 0.0; omax1_2=0.0; omin2_2 = 0.0; omax2_2=0.0;
+                omin1_3 = 0.0; omax1_3=0.0; omin2_3 = 0.0; omax2_3=0.0;
+                omin1_4 = 0.0; omax1_4=0.0; omin2_4 = 0.0; omax2_4=0.0;
+                omin1_5 = 0.0; omax1_5=0.0; omin2_5 = 0.0; omax2_5=0.0;
+                omin1_6 = 0.0; omax1_6=0.0; omin2_6 = 0.0; omax2_6=0.0;
+
+                _fseeki64(MyOutPutFIle, recordCurPos, SEEK_SET);
+                m_TimeDelta.GetWindowTextA(MyPos64);
+                strcpy(szText, MyPos64.GetString());
+                g_iTimeDelta = atoi(szText);
+
+                m_CountDb.GetWindowTextA(MyPos64);
+                strcpy(szText, MyPos64.GetString());
+                g_iCountDB = atoi(szText);
+
+            }
+        }
+    }
+    else
+    {
+        flRunningRecording = FALSE;
+        m_Run.SetWindowTextA("run");
+        if (flRecordOpenedForWrite == FALSE)
+        {
+            if (MyOutPutFIle!=NULL)    // reading old recordings
+            {
+                __int64  recordCurPos = _ftelli64(MyOutPutFIle);
+                char szOffset[64];
+                sprintf(szOffset, "%I64d", recordCurPos);
+                m_OffsetPosition.SetWindowTextA(szOffset);
+
+
+            }
+        }
+    }
+
 }

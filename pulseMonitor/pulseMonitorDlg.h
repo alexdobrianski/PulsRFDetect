@@ -72,7 +72,7 @@ public:
 //    CStatic m_Signal;
     CStatic m_SIgnal;
     CSliderCtrl m_SLider;
-    CButton m_ShowLines;
+    //CButton m_ShowLines;
     afx_msg void OnBnClickedCheckDotsLines();
     CStatic m_Period1;
     CStatic m_Period2;
@@ -112,4 +112,15 @@ public:
     afx_msg void OnBnClickedButtonCleanFq6();
     CButton m_NumberChan;
     afx_msg void OnBnClickedCheckNCh();
+    afx_msg void OnBnClickedButtonSetPos();
+//    CButton m_SetPosition;
+    CButton m_SetPosition;
+    CEdit m_OffsetPosition;
+    CEdit m_TimeDelta;
+    afx_msg void OnBnClickedButtonAnalize();
+    CEdit m_Minimum;
+    CEdit m_Maximum;
+    CEdit m_CountDb;
+    afx_msg void OnBnClickedButtonRunDb();
+    CEdit m_ChanVis;
 };
