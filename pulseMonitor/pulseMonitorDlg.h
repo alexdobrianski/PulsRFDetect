@@ -58,6 +58,7 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 public:
+    void CleanAllPictures(void);
     afx_msg void OnEnChangeEdit1();
     virtual BOOL DestroyWindow();
     CListBox m_SecPerScreen;
@@ -123,4 +124,7 @@ public:
     CEdit m_CountDb;
     afx_msg void OnBnClickedButtonRunDb();
     CEdit m_ChanVis;
+    CButton m_Analize;
+    CEdit m_From_P;
+    CEdit m_To_P;
 };
