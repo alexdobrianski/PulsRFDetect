@@ -163,7 +163,7 @@ typedef struct tagPulsars
 
 } PULSARS, *PPULSARS;
 
-
+    int g_j = 0;
     PULSARS Pulsars[150];
     int nPulsars;
 
@@ -497,7 +497,7 @@ LRESULT CALLBACK AudioStreamCallback(HWND hwndC,LPWAVEHDR lpWAVEHDR, BOOL flProc
     {
         if (DoAnalize)
         {
-            long double dLenOfPuls = SAMPLES_PER_SEC * (pulsars_over_head[j].px) + g_iTimeDelta;
+            long double dLenOfPuls = /*SAMPLES_PER_SEC * (pulsars_over_head[g_j].px) +*/ g_iTimeDelta;
             long iLenOfPuls = dLenOfPuls;
             long double FraDbl = dLenOfPuls - (long double)iLenOfPuls;
             long double *pFraction = NULL;
@@ -1871,6 +1871,92 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                                 {
                                     if (DoAnalize)
                                     {
+                                        if (DoFirstdb)
+                                        {
+                                            DoFirstdb = FALSE;
+                                            g_iCountDB = g_iCountDB_old;
+                                        }
+                                        else
+                                        {
+                                            FILE *AnalizeLog = fopen("Analize.txt","a");
+                                            if (AnalizeLog != NULL)
+                                            {
+                                                // 1. find medum value => Medium1
+                                                // 2. find medim for top-to-medium =>MediumT
+                                                // 3. find medium from medul-to-bottom =>MediumB
+                                                // 4. output max,min, medium1, mediumT, MediumB
+                                                // 5. find metrix from FerstdB and seconddB (V1-V2)^2
+                                                long double Medium1= 0;
+                                                long double Medium2= 0;
+                                                for (int ik = 0 ; ik < g_iTimeDelta; ik++)
+                                                {
+                                                    Medium1+=BUFEDETECT_1db[ik*2];
+                                                    Medium2+=BUFEDETECT_2db[ik*2];
+                                                }
+                                                Medium1/=(long double)g_iTimeDelta;
+                                                Medium2/=(long double)g_iTimeDelta;
+
+                                                long double MediumT1= 0;
+                                                long double MediumT2= 0;
+                                                long double MediumB1= 0;
+                                                long double MediumB2= 0;
+
+                                                long iMediumT1= 0;
+                                                long iMediumT2= 0;
+                                                long iMediumB1= 0;
+                                                long iMediumB2= 0;
+
+                                                for (int ik = 0 ; ik < g_iTimeDelta; ik++)
+                                                {
+                                                    if (BUFEDETECT_1db[ik*2] > Medium1)
+                                                    {
+                                                        MediumT1+=BUFEDETECT_1db[ik*2];
+                                                        iMediumT1++;
+                                                    }
+                                                    else
+                                                    {
+                                                        MediumB1+=BUFEDETECT_1db[ik*2];
+                                                        iMediumB1++;
+                                                    }
+                                                    if (BUFEDETECT_2db[ik*2] > Medium2)
+                                                    {
+                                                        MediumT2+=BUFEDETECT_2db[ik*2];
+                                                        iMediumT2++;
+                                                    }
+                                                    else
+                                                    {
+                                                        MediumB2+=BUFEDETECT_2db[ik*2];
+                                                        iMediumB2++;
+                                                    }
+                                                }
+                                                MediumT1/=(long double)iMediumT1;
+                                                MediumT2/=(long double)iMediumT2;
+                                                MediumB1/=(long double)iMediumB1;
+                                                MediumB2/=(long double)iMediumB2;
+
+                                                long double Metrix=0.0;
+                                                for (int ik = 0 ; ik < g_iTimeDelta; ik++)
+                                                {
+                                                    Metrix+= (BUFEDETECT_1db[ik*2]-BUFEDETECT_2db[ik*2])*(BUFEDETECT_1db[ik*2]-BUFEDETECT_2db[ik*2]);
+                                                }
+                                                Metrix = sqrt(Metrix);
+                                                fprintf(AnalizeLog,"\n Period = %ld, Metrix =%13.3f Min1 = %13.3f, Max1 =%13.3f Min2 = %13.3f, Max2 =%13.3f MedT1 = %13.3f, MedB1 =%13.3f MedT1 = %13.3f, MedB1 =%13.3f",
+                                                    Metrix, omin1_db1, omax1_db1, omin2_db1, omax2_db1, MediumT1, MediumB1, MediumT2, MediumB2);
+
+                                                fclose(AnalizeLog);
+                                            }
+
+                                            DoFirstdb = TRUE;
+                                            g_iCountDB = g_iCountDB_old;
+                                            g_iTimeDelta +=1;
+                                            if (g_iTimeDelta > g_Analize_To)
+                                            {
+                                                flRunningRecording = FALSE;
+                                                DoAnalize = FALSE;
+                                                m_Analize.SetWindowTextA("Analize");
+                                                break;
+                                            }
+                                        }
                                     }
                                     else
                                     {
@@ -2466,14 +2552,30 @@ void CpulseMonitorDlg::OnBnClickedButtonAnalize()
         _fseeki64(MyOutPutFIle, recordCurPos, SEEK_SET);
         m_TimeDelta.GetWindowTextA(MyPos64);
         strcpy(szText, MyPos64.GetString());
-        g_iTimeDelta = atof(szText);
+        //g_iTimeDelta = atof(szText);
 
         m_CountDb.GetWindowTextA(MyPos64);
         strcpy(szText, MyPos64.GetString());
         g_iCountDB = atoi(szText);
         g_iCountDB_old = g_iCountDB;
+
+        m_From_P.GetWindowTextA(MyPos64);
+        strcpy(szText, MyPos64.GetString());
+        g_Analize_From = atol(szText);
+        g_iTimeDelta = g_Analize_From;
+        m_TimeDelta.SetWindowTextA(szText);
+
+        m_To_P.GetWindowTextA(MyPos64);
+        strcpy(szText, MyPos64.GetString());
+        g_Analize_To = atol(szText);
+
         GetAllPulsarsData();
         m_Analize.SetWindowTextA("Analizing");
+        g_j = 0;
+        if (flRunningRecording == TRUE)
+        {
+            flRunningRecording = FALSE;
+        }
     }
 }
 
