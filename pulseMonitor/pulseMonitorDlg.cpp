@@ -344,6 +344,7 @@ long double omin1_db1;
 long double omax1_db1;
 long double omin2_db1;
 long double omax2_db1;
+long iCointdB1 = 0;
 
 long double BUFEDETECT_2db[SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*MAX_PERIOD_IN_SEC];
 long double Pdb2min1_tmp= -12345678;
@@ -352,6 +353,13 @@ long double Pdb2min2_tmp;
 long double Pdb2max2_tmp;
 long idb2PosIn = 0;
 long double Fraction2db = 0.0;
+long double omin1_db2; 
+long double omax1_db2;
+long double omin2_db2;
+long double omax2_db2;
+long iCointdB2 = 0;
+
+
 
 int bRGBImageW_S = IMAGE_W_S;
 int bRGBImageH_S = IMAGE_H_S;
@@ -513,18 +521,19 @@ LRESULT CALLBACK AudioStreamCallback(HWND hwndC,LPWAVEHDR lpWAVEHDR, BOOL flProc
             long double *oMax1 = NULL;
             long double *oMin2 = NULL;
             long double *oMax2 = NULL;
+            long *iCointdB;
 
             int iTemp = 0;
             if (DoFirstdb)
             {
                 iStart = idb1PosIn; ldMin1 = Pdb1min1_tmp; ldMax1 = Pdb1max1_tmp; ldMin2 = Pdb1min2_tmp; ldMax2 = Pdb1max2_tmp; 
-                pFraction = &Fraction1db;oMin1 = &omin1_db1; oMax1 = &omax1_db1; oMin2 = &omin2_db1; oMax2 = &omax2_db1;
+                pFraction = &Fraction1db; oMin1 = &omin1_db1; oMax1 = &omax1_db1; oMin2 = &omin2_db1; oMax2 = &omax2_db1; iCointdB = &iCointdB1;
                 dIntegralVal0 = &BUFEDETECT_1db[0];dIntegralVal = &BUFEDETECT_1db[iStart*2];
             }
             else
             {
                 iStart = idb2PosIn; ldMin1 = Pdb2min1_tmp; ldMax1 = Pdb2max1_tmp; ldMin2 = Pdb2min2_tmp; ldMax2 = Pdb2max2_tmp; 
-                pFraction = &Fraction2db;
+                pFraction = &Fraction2db; oMin1 = &omin1_db2; oMax1 = &omax1_db2; oMin2 = &omin2_db2; oMax2 = &omax2_db2; iCointdB = &iCointdB2;
                 dIntegralVal0 = &BUFEDETECT_2db[0];dIntegralVal = &BUFEDETECT_2db[iStart*2];
             }
             *pFraction += FraDbl; iTemp = *pFraction; 
@@ -561,6 +570,7 @@ LRESULT CALLBACK AudioStreamCallback(HWND hwndC,LPWAVEHDR lpWAVEHDR, BOOL flProc
 
                 if (++iStart > iLenOfPuls)
                 {
+                    (*iCointdB)++;
                     int iiTemp = iTemp;
                     while(iiTemp--)
                     {
@@ -1871,6 +1881,9 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                                 {
                                     if (DoAnalize)
                                     {
+                                        
+
+                                        
                                         if (DoFirstdb)
                                         {
                                             DoFirstdb = FALSE;
@@ -1878,9 +1891,18 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                                         }
                                         else
                                         {
+                                            CString MyPos64;
+                                            m_OffsetPosition.GetWindowTextA(MyPos64);
+                                            char szText[64];
+                                            strcpy(szText, MyPos64.GetString());
+                                            __int64  recordCurPos =0;
+                                            sscanf(szText, "%I64d",&recordCurPos);
+                                            _fseeki64(MyOutPutFIle, recordCurPos, SEEK_SET);
                                             FILE *AnalizeLog = fopen("Analize.txt","a");
                                             if (AnalizeLog != NULL)
                                             {
+                                                char szPulsar[_MAX_PATH]={"        "};
+
                                                 // 1. find medum value => Medium1
                                                 // 2. find medim for top-to-medium =>MediumT
                                                 // 3. find medium from medul-to-bottom =>MediumB
@@ -1893,8 +1915,8 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                                                     Medium1+=BUFEDETECT_1db[ik*2];
                                                     Medium2+=BUFEDETECT_2db[ik*2];
                                                 }
-                                                Medium1/=(long double)g_iTimeDelta;
-                                                Medium2/=(long double)g_iTimeDelta;
+                                                Medium1/=(long double)g_iTimeDelta*(long double)iCointdB1;
+                                                Medium2/=(long double)g_iTimeDelta*(long double)iCointdB2;
 
                                                 long double MediumT1= 0;
                                                 long double MediumT2= 0;
@@ -1908,7 +1930,7 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
 
                                                 for (int ik = 0 ; ik < g_iTimeDelta; ik++)
                                                 {
-                                                    if (BUFEDETECT_1db[ik*2] > Medium1)
+                                                    if (BUFEDETECT_1db[ik*2] > (Medium1*(long double)iCointdB1))
                                                     {
                                                         MediumT1+=BUFEDETECT_1db[ik*2];
                                                         iMediumT1++;
@@ -1918,7 +1940,7 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                                                         MediumB1+=BUFEDETECT_1db[ik*2];
                                                         iMediumB1++;
                                                     }
-                                                    if (BUFEDETECT_2db[ik*2] > Medium2)
+                                                    if (BUFEDETECT_2db[ik*2] > (Medium2*(long double)iCointdB2))
                                                     {
                                                         MediumT2+=BUFEDETECT_2db[ik*2];
                                                         iMediumT2++;
@@ -1929,21 +1951,41 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                                                         iMediumB2++;
                                                     }
                                                 }
-                                                MediumT1/=(long double)iMediumT1;
-                                                MediumT2/=(long double)iMediumT2;
-                                                MediumB1/=(long double)iMediumB1;
-                                                MediumB2/=(long double)iMediumB2;
+                                                MediumT1/=(long double)iMediumT1*(long double)iCointdB1;
+                                                MediumT2/=(long double)iMediumT2*(long double)iCointdB2;
+                                                MediumB1/=(long double)iMediumB1*(long double)iCointdB1;
+                                                MediumB2/=(long double)iMediumB2*(long double)iCointdB2;
 
                                                 long double Metrix=0.0;
                                                 for (int ik = 0 ; ik < g_iTimeDelta; ik++)
                                                 {
                                                     Metrix+= (BUFEDETECT_1db[ik*2]-BUFEDETECT_2db[ik*2])*(BUFEDETECT_1db[ik*2]-BUFEDETECT_2db[ik*2]);
                                                 }
-                                                Metrix = sqrt(Metrix);
-                                                fprintf(AnalizeLog,"\n Period = %ld, Metrix =%13.3f Min1 = %13.3f, Max1 =%13.3f Min2 = %13.3f, Max2 =%13.3f MedT1 = %13.3f, MedB1 =%13.3f MedT1 = %13.3f, MedB1 =%13.3f",
-                                                    Metrix, omin1_db1, omax1_db1, omin2_db1, omax2_db1, MediumT1, MediumB1, MediumT2, MediumB2);
+                                                Metrix = sqrt(Metrix)/g_iTimeDelta;
+                                                for (int ipu = 0; ipu < nPulsars; ipu++)
+                                                {
+                                                    if (((long)g_iTimeDelta) == ((long)(Pulsars[ipu].P0*SAMPLES_PER_SEC)))
+                                                    {
+                                                        strcpy(szPulsar, Pulsars[ipu].Name);
+                                                        break;
+                                                    }
+                                                }
+                                                fprintf(AnalizeLog,"\n%8s Period = %7.0f, Metrix=%13.3f Min1_Max1=%10.2f Min2_Max2=%10.2f MedT1_MedB1 =%13.3f MedT2_MedB2 =%13.3f",
+                                                   szPulsar, g_iTimeDelta, Metrix, -omin1_db1/(long double)iCointdB1 + omax1_db1/(long double)iCointdB1, 
+
+                                                   -omin1_db2/(long double)iCointdB2 + omax1_db2/(long double)iCointdB1, MediumT1 -MediumB1, MediumT2-MediumB2);
 
                                                 fclose(AnalizeLog);
+                                                iCointdB1 = 0; iCointdB2 = 0;
+                                                omin1_db1 = 0.0; omax1_db1 = 0.0; omin2_db1 = 0.0; omax2_db1 = 0.0;
+                                                for (long il = 0; il < SAMPLES_PER_SEC*NUMBER_OF_CHANNELS*MAX_PERIOD_IN_SEC; il++)
+                                                {
+                                                    BUFEDETECT_1db[il] = 0.0; BUFEDETECT_2db[il] = 0.0;
+                                                }
+                                                Pdb1min1_tmp= 1.0e64; Pdb1max1_tmp =-1.0e64; Pdb1min2_tmp = 1.0e64; Pdb1max2_tmp =-1.0e64;
+                                                Pdb2min1_tmp= 1.0e64; Pdb2max1_tmp =-1.0e64; Pdb2min2_tmp = 1.0e64; Pdb2max2_tmp =-1.0e64;
+                                                idb1PosIn = 0; idb2PosIn = 0;
+                                                Fraction1db = 0.0; Fraction2db = 0.0;
                                             }
 
                                             DoFirstdb = TRUE;
@@ -1955,6 +1997,11 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                                                 DoAnalize = FALSE;
                                                 m_Analize.SetWindowTextA("Analize");
                                                 break;
+                                            }
+                                            {
+                                                char szAnalizeFQ[_MAX_PATH];
+                                                sprintf(szAnalizeFQ,"%13.3f",g_iTimeDelta);
+                                                m_TimeDelta.SetWindowTextA(szAnalizeFQ);
                                             }
                                         }
                                     }
@@ -2012,6 +2059,12 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                             {
                                 if (DoAnalize)
                                 {
+                                    AudioStreamCallback(NULL,&WAVEHDRMainRead, TRUE);
+                                    g_reacordCurPos = _ftelli64(MyOutPutFIle);
+                                    CTime MyTime = CTime(ReadPulseStruct.myShowSysTime);
+                                    m_Time.SetTime(&MyTime);
+                                    m_Date.SetTime(&MyTime);
+                                    m_SLider.SetPos((m_SLider.GetRangeMax()* g_reacordCurPos)/g_reacordMAxSize);
                                 }
                                 else
                                 {
@@ -2572,9 +2625,9 @@ void CpulseMonitorDlg::OnBnClickedButtonAnalize()
         GetAllPulsarsData();
         m_Analize.SetWindowTextA("Analizing");
         g_j = 0;
-        if (flRunningRecording == TRUE)
+        if (flRunningRecording == FALSE)
         {
-            flRunningRecording = FALSE;
+            flRunningRecording = TRUE;
         }
     }
 }
@@ -2652,7 +2705,9 @@ void CpulseMonitorDlg::CleanAllPictures(void)
 
     iPosIn1 = 0; iPosIn2 = 0; iPosIn3 = 0; iPosIn4 = 0; iPosIn5 = 0; iPosIn6 = 0;
     Fraction1 = 0.0; Fraction2 = 0.0; Fraction3 = 0.0; Fraction4 = 0.0; Fraction5 = 0.0; Fraction6 = 0.0;
+    iCointdB1 = 0; iCointdB2 = 0;
     omin1_db1 = 0.0; omax1_db1 = 0.0; omin2_db1 = 0.0; omax2_db1 = 0.0;
+    omin1_db2 = 0.0; omax1_db2 = 0.0; omin2_db2 = 0.0; omax2_db2 = 0.0;
 
     Pmin1_1 = 1.0e64; Pmax1_1=-1.0e64; Pmin2_1 = 1.0e64; Pmax2_1=-1.0e64;
     Pmin1_2 = 1.0e64; Pmax1_2=-1.0e64; Pmin2_2 = 1.0e64; Pmax2_2=-1.0e64;
