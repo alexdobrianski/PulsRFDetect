@@ -127,4 +127,6 @@ public:
     CButton m_Analize;
     CEdit m_From_P;
     CEdit m_To_P;
+    afx_msg void OnBnClickedButtonAnalizePulsarsOnly();
+    CButton m_AnalizePulsarsOnly;
 };

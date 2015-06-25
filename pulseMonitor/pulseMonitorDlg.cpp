@@ -119,6 +119,7 @@ void CpulseMonitorDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_BUTTON_ANALIZE, m_Analize);
     DDX_Control(pDX, IDC_EDIT_FROM_P, m_From_P);
     DDX_Control(pDX, IDC_EDIT_TO_P, m_To_P);
+    DDX_Control(pDX, IDC_BUTTON_ANALIZE_PULSARS_ONLY, m_AnalizePulsarsOnly);
 }
 
 BEGIN_MESSAGE_MAP(CpulseMonitorDlg, CDialogEx)
@@ -148,6 +149,7 @@ BEGIN_MESSAGE_MAP(CpulseMonitorDlg, CDialogEx)
     ON_BN_CLICKED(IDC_BUTTON_SET_POS, &CpulseMonitorDlg::OnBnClickedButtonSetPos)
     ON_BN_CLICKED(IDC_BUTTON_ANALIZE, &CpulseMonitorDlg::OnBnClickedButtonAnalize)
     ON_BN_CLICKED(IDC_BUTTON_RUN_DB, &CpulseMonitorDlg::OnBnClickedButtonRunDb)
+    ON_BN_CLICKED(IDC_BUTTON_ANALIZE_PULSARS_ONLY, &CpulseMonitorDlg::OnBnClickedButtonAnalizePulsarsOnly)
 END_MESSAGE_MAP()
 
 #define NPULSARS 150
@@ -1124,6 +1126,54 @@ void ParamCommonPulsars(char *szString)
         IF_XML_READ(S400mJy)
         {
             Pulsars[nPulsars].S400mJy = atof(pszQuo);
+        }
+        IF_XML_READ(RAJD)
+        {
+            Pulsars[nPulsars].ELONG = atof(pszQuo);
+        }
+        IF_XML_READ(DECJD)
+        {
+            Pulsars[nPulsars].ELAT = atof(pszQuo);
+        }
+        IF_XML_READ(RAJ)
+        {
+            long double fRajH = atoi(pszQuo);
+            long double fRajM = atoi(pszQuo+3);
+            long double fRajS = atoi(pszQuo+6);
+            long double fRajMS = atoi(pszQuo+9);
+            int iLen = strlen(pszQuo+9);
+            int iLenQ = 0;
+            if (strchr(pszQuo+9,'\"') != NULL)
+            {
+                iLenQ = strlen(strchr(pszQuo+9,'\"'));
+            }
+            long double fLen = pow(10.0, iLen-iLenQ);
+            long double fsec = (fRajH * 60.0 + fRajM) * 60.0 + fRajS + fRajMS/fLen;
+            Pulsars[nPulsars].ELONG = 360.0*fsec/ (24*60*60); 
+
+        }
+        IF_XML_READ(DECJ)
+        {
+            BOOL flNegative = FALSE;
+            if (pszQuo[0] == '-')
+                flNegative = TRUE;
+            long double fDecjDeg =atoi(pszQuo);
+            long double fDecjMin =atoi(pszQuo+4);
+            long double fDecjSec =atoi(pszQuo+7);
+            long double fDecjMS =atoi(pszQuo+10);
+            int iLen = strlen(pszQuo+10);
+            int iLenQ = 0;
+            if (strchr(pszQuo+10,'\"') != NULL)
+            {
+                iLenQ = strlen(strchr(pszQuo+10,'\"'));
+            }
+            long double fLen = pow(10.0, iLen-iLenQ);
+            long double fDec = 0;
+            if (flNegative)
+                fDec = fDecjDeg - fDecjMin/60 - (fDecjSec+fDecjMS/fLen)/(60*60);
+            else
+                fDec = fDecjDeg + fDecjMin/60 + (fDecjSec+fDecjMS/fLen)/(60*60);
+            Pulsars[nPulsars].ELAT =fDec;
             if (++nPulsars >= NPULSARS)
                 nPulsars = NPULSARS-1;
         }
@@ -2000,6 +2050,9 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                                                 flRunningRecording = FALSE;
                                                 DoAnalize = FALSE;
                                                 m_Analize.SetWindowTextA("Analize");
+                                                KillTimer(901);
+                                                SetTimer(901, 1000,NULL);
+                                                g_SecondsPerScreen = 1;
                                                 break;
                                             }
                                             {
@@ -2593,9 +2646,12 @@ void CpulseMonitorDlg::OnBnClickedButtonAnalize()
     {
         DoAnalize = FALSE;
         m_Analize.SetWindowTextA("Analize");
+        KillTimer(901);
+        SetTimer(901, 1000,NULL);
     }
     else
     {
+        KillTimer(901);
         DoAnalize = TRUE;
         DoFirstdb = TRUE;
         CleanAllPictures();
@@ -2633,6 +2689,7 @@ void CpulseMonitorDlg::OnBnClickedButtonAnalize()
         {
             flRunningRecording = TRUE;
         }
+        SetTimer(901, 100,NULL);
     }
 }
 
@@ -2796,5 +2853,59 @@ void CpulseMonitorDlg::CleanAllPictures(void)
             break;
         }
 		::ReleaseDC(NULL, hDC); 
+    }
+}
+
+void CpulseMonitorDlg::OnBnClickedButtonAnalizePulsarsOnly()
+{
+    // TODO: Add your control notification handler code here
+    if (DoAnalize)
+    {
+        DoAnalize = FALSE;
+        m_Analize.SetWindowTextA("Analize");
+        KillTimer(901);
+        SetTimer(901, 1000,NULL);
+    }
+    else
+    {
+        KillTimer(901);
+        DoAnalize = TRUE;
+        DoFirstdb = TRUE;
+        CleanAllPictures();
+        CString MyPos64;
+        m_OffsetPosition.GetWindowTextA(MyPos64);
+        char szText[64];
+        strcpy(szText, MyPos64.GetString());
+        __int64  recordCurPos =0;
+        sscanf(szText, "%I64d",&recordCurPos);
+
+        _fseeki64(MyOutPutFIle, recordCurPos, SEEK_SET);
+        m_TimeDelta.GetWindowTextA(MyPos64);
+        strcpy(szText, MyPos64.GetString());
+        //g_iTimeDelta = atof(szText);
+
+        m_CountDb.GetWindowTextA(MyPos64);
+        strcpy(szText, MyPos64.GetString());
+        g_iCountDB = atoi(szText);
+        g_iCountDB_old = g_iCountDB;
+
+        m_From_P.GetWindowTextA(MyPos64);
+        strcpy(szText, MyPos64.GetString());
+        g_Analize_From = atol(szText);
+        g_iTimeDelta = g_Analize_From;
+        m_TimeDelta.SetWindowTextA(szText);
+
+        m_To_P.GetWindowTextA(MyPos64);
+        strcpy(szText, MyPos64.GetString());
+        g_Analize_To = atol(szText);
+
+        GetAllPulsarsData();
+        m_Analize.SetWindowTextA("Analizing");
+        g_j = 0;
+        if (flRunningRecording == FALSE)
+        {
+            flRunningRecording = TRUE;
+        }
+        SetTimer(901, 100,NULL);
     }
 }
