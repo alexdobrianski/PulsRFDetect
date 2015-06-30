@@ -165,6 +165,8 @@ typedef struct tagPulsars
 
 } PULSARS, *PPULSARS;
 
+    int g_cur_pulsar = 0;
+    BOOL CheckAllPulsars = FALSE;
     int g_j = 0;
     PULSARS Pulsars[150];
     int nPulsars;
@@ -583,7 +585,7 @@ LRESULT CALLBACK AudioStreamCallback(HWND hwndC,LPWAVEHDR lpWAVEHDR, BOOL flProc
                     {
                         dIntegralVal++;dIntegralVal++;
                     }
-                    if (g_iCountDB < 4)
+                    if (g_iCountDB < 3)
                         memcpy(data_last, dIntegralVal0, iLenOfPuls*NUMBER_OF_CHANNELS*sizeof(long double));
                     *pFraction -= (long double) iTemp;
                     *oMin1 = ldMin1; *oMax1 = ldMax1; *oMin2 = ldMin2; *oMax2 = ldMax2;
@@ -1942,6 +1944,11 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                                         {
                                             DoFirstdb = FALSE;
                                             g_iCountDB = g_iCountDB_old;
+                                            for (int ik = 0 ; ik < g_iTimeDelta; ik++)
+                                            {
+                                                BUFEDETECT_2db[ik*2] = BUFEDETECT_1db_last[ik*2];
+                                            }
+                                            iCointdB2 = iCointdB1;
                                         }
                                         else
                                         {
@@ -1964,13 +1971,32 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                                                 // 5. find metrix from FerstdB and seconddB (V1-V2)^2
                                                 long double Medium1= 0;
                                                 long double Medium2= 0;
+                                                long double MaxDb1= -1.0e+60;
+                                                long double MinDb1=  1.0e+60;
+                                                long double MaxDb2= -1.0e+60;
+                                                long double MinDb2=  1.0e+60;
                                                 for (int ik = 0 ; ik < g_iTimeDelta; ik++)
                                                 {
                                                     Medium1+=BUFEDETECT_1db_last[ik*2];
                                                     Medium2+=BUFEDETECT_2db_last[ik*2];
+                                                    if (MaxDb1 < BUFEDETECT_1db_last[ik*2])
+                                                        MaxDb1 = BUFEDETECT_1db_last[ik*2];
+                                                    if (MaxDb2 < BUFEDETECT_2db_last[ik*2])
+                                                        MaxDb2 = BUFEDETECT_2db_last[ik*2];
+
+                                                    if (MinDb1 >= BUFEDETECT_1db_last[ik*2])
+                                                        MinDb1 = BUFEDETECT_1db_last[ik*2];
+                                                    if (MinDb2 >= BUFEDETECT_2db_last[ik*2])
+                                                        MinDb2 = BUFEDETECT_2db_last[ik*2];
                                                 }
                                                 Medium1/=(long double)g_iTimeDelta*(long double)iCointdB1;
                                                 Medium2/=(long double)g_iTimeDelta*(long double)iCointdB2;
+                                                MaxDb1/=(long double)iCointdB1;
+                                                MinDb1/=(long double)iCointdB1;
+                                                MaxDb2/=(long double)iCointdB2;
+                                                MinDb2/=(long double)iCointdB2;
+
+
 
                                                 long double MediumT1= 0;
                                                 long double MediumT2= 0;
@@ -2013,9 +2039,10 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                                                 long double Metrix=0.0;
                                                 for (int ik = 0 ; ik < g_iTimeDelta; ik++)
                                                 {
-                                                    Metrix+= (BUFEDETECT_1db_last[ik*2]-BUFEDETECT_2db_last[ik*2])*(BUFEDETECT_1db_last[ik*2]-BUFEDETECT_2db_last[ik*2]);
+                                                    Metrix+= (BUFEDETECT_1db_last[ik*2]/(long double)iCointdB1-BUFEDETECT_2db_last[ik*2]/(long double)iCointdB2)*
+                                                             (BUFEDETECT_1db_last[ik*2]/(long double)iCointdB1-BUFEDETECT_2db_last[ik*2]/(long double)iCointdB2);
                                                 }
-                                                Metrix = sqrt(Metrix)/(g_iTimeDelta*(long double)iCointdB1);
+                                                Metrix = sqrt(Metrix)/(g_iTimeDelta);
                                                 for (int ipu = 0; ipu < nPulsars; ipu++)
                                                 {
                                                     if (((long)g_iTimeDelta) == ((long)(Pulsars[ipu].P0*SAMPLES_PER_SEC)))
@@ -2024,10 +2051,10 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                                                         break;
                                                     }
                                                 }
-                                                fprintf(AnalizeLog,"\n%8s Period = %7.0f, Metrix=%13.7f Min1_Max1=%10.2f Min2_Max2=%10.2f MedT1_MedB1 =%13.3f MedT2_MedB2 =%13.3f",
-                                                   szPulsar, g_iTimeDelta, Metrix, -omin1_db1/(long double)iCointdB1 + omax1_db1/(long double)iCointdB1, 
-
-                                                   -omin1_db2/(long double)iCointdB2 + omax1_db2/(long double)iCointdB1, MediumT1 -MediumB1, MediumT2-MediumB2);
+                                                fprintf(AnalizeLog,"\n%8s Period = %7.0f, Metrix=%13.7f MaxMin=%10.2f DifMaxMin=%10.2f MedT1_MedB1 =%13.3f MedT2_MedB2 =%13.3f",
+                                                   szPulsar, g_iTimeDelta, Metrix, (MaxDb1-MinDb1), 
+                                                   (MaxDb1-MinDb1) - (MaxDb2-MinDb2), 
+                                                   MediumT1 -MediumB1, (MediumT1-MediumB1)-(MediumT2 -MediumB2));
 
                                                 fclose(AnalizeLog);
                                                 iCointdB1 = 0; iCointdB2 = 0;
@@ -2047,13 +2074,45 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                                             g_iTimeDelta +=1;
                                             if (g_iTimeDelta > g_Analize_To)
                                             {
-                                                flRunningRecording = FALSE;
-                                                DoAnalize = FALSE;
-                                                m_Analize.SetWindowTextA("Analize");
-                                                KillTimer(901);
-                                                SetTimer(901, 1000,NULL);
-                                                g_SecondsPerScreen = 1;
-                                                break;
+                                                if (CheckAllPulsars)
+                                                {
+                                                    if (++g_cur_pulsar >= nPulsars)
+                                                    {
+                                                        CheckAllPulsars = FALSE;
+                                                        flRunningRecording = FALSE;
+                                                        DoAnalize = FALSE;
+                                                        m_AnalizePulsarsOnly.SetWindowTextA("Analize pls only");
+                                                        KillTimer(901);
+                                                        SetTimer(901, 1000,NULL);
+                                                        g_SecondsPerScreen = 1;
+                                                        break;
+                                                    }
+                                                    else
+                                                    {
+                                                        CleanAllPictures();
+                                                        g_Analize_From = Pulsars[g_cur_pulsar].P0*SAMPLES_PER_SEC -25.0;
+                                                        g_Analize_To = Pulsars[g_cur_pulsar].P0*SAMPLES_PER_SEC +25.0;
+                                                        g_iTimeDelta = g_Analize_From;
+                                                        CString MyPos64;
+                                                        m_OffsetPosition.GetWindowTextA(MyPos64);
+                                                        char szText[64];
+                                                        strcpy(szText, MyPos64.GetString());
+                                                        __int64  recordCurPos =0;
+                                                        sscanf(szText, "%I64d",&recordCurPos);
+                                                        _fseeki64(MyOutPutFIle, recordCurPos, SEEK_SET);
+                                                    }
+                                                }
+                                                else
+                                                {
+
+                                                    flRunningRecording = FALSE;
+                                                    DoAnalize = FALSE;
+                                                    m_Analize.SetWindowTextA("Analize");
+                                                    KillTimer(901);
+                                                    SetTimer(901, 1000,NULL);
+                                                    g_SecondsPerScreen = 1;
+                                                    break;
+                                                }
                                             }
                                             {
                                                 char szAnalizeFQ[_MAX_PATH];
@@ -2641,6 +2700,7 @@ void CpulseMonitorDlg::OnBnClickedButtonSetPos()
 
 void CpulseMonitorDlg::OnBnClickedButtonAnalize()
 {
+    CheckAllPulsars = FALSE;
     // TODO: Add your control notification handler code here
     if (DoAnalize)
     {
@@ -2696,6 +2756,7 @@ void CpulseMonitorDlg::OnBnClickedButtonAnalize()
 
 void CpulseMonitorDlg::OnBnClickedButtonRunDb()
 {
+    CheckAllPulsars = FALSE;
     // TODO: Add your control notification handler code here
     if (flRunningRecording == FALSE)
     {
@@ -2862,12 +2923,14 @@ void CpulseMonitorDlg::OnBnClickedButtonAnalizePulsarsOnly()
     if (DoAnalize)
     {
         DoAnalize = FALSE;
-        m_Analize.SetWindowTextA("Analize");
+        m_AnalizePulsarsOnly.SetWindowTextA("Analize pls only");
         KillTimer(901);
         SetTimer(901, 1000,NULL);
+        CheckAllPulsars = FALSE;
     }
     else
     {
+        CheckAllPulsars = TRUE;
         KillTimer(901);
         DoAnalize = TRUE;
         DoFirstdb = TRUE;
@@ -2889,18 +2952,24 @@ void CpulseMonitorDlg::OnBnClickedButtonAnalizePulsarsOnly()
         g_iCountDB = atoi(szText);
         g_iCountDB_old = g_iCountDB;
 
-        m_From_P.GetWindowTextA(MyPos64);
-        strcpy(szText, MyPos64.GetString());
-        g_Analize_From = atol(szText);
-        g_iTimeDelta = g_Analize_From;
-        m_TimeDelta.SetWindowTextA(szText);
+        //m_From_P.GetWindowTextA(MyPos64);
+        //strcpy(szText, MyPos64.GetString());
+        //g_Analize_From = atol(szText);
+        //g_iTimeDelta = g_Analize_From;
+        //m_TimeDelta.SetWindowTextA(szText);
 
-        m_To_P.GetWindowTextA(MyPos64);
-        strcpy(szText, MyPos64.GetString());
-        g_Analize_To = atol(szText);
+        //m_To_P.GetWindowTextA(MyPos64);
+        //strcpy(szText, MyPos64.GetString());
+        //g_Analize_To = atol(szText);
 
         GetAllPulsarsData();
-        m_Analize.SetWindowTextA("Analizing");
+        g_cur_pulsar = 0;
+
+        g_Analize_From = Pulsars[g_cur_pulsar].P0*SAMPLES_PER_SEC -50.0;
+        g_Analize_To = Pulsars[g_cur_pulsar].P0*SAMPLES_PER_SEC +50.0;
+        g_iTimeDelta = g_Analize_From;
+
+        m_AnalizePulsarsOnly.SetWindowTextA("Analizing pls");
         g_j = 0;
         if (flRunningRecording == FALSE)
         {
