@@ -1855,7 +1855,29 @@ void CpulseMonitorDlg::OnNMCustomdrawSlider1(NMHDR *pNMHDR, LRESULT *pResult)
     *pResult = 0;
 }
 
-
+void CpulseMonitorDlg::OutputHeadertext(__int64 recordCurPosOld)
+{
+    g_Analize_From = Pulsars[g_cur_pulsar].P0*SAMPLES_PER_SEC -25.0;
+    g_Analize_To = Pulsars[g_cur_pulsar].P0*SAMPLES_PER_SEC +25.0;
+    g_iTimeDelta = g_Analize_From;
+    FILE *AnalizeLog = fopen("Analize.txt","a");
+    if (AnalizeLog != NULL)
+    {
+        CString MyTimeVal;
+        CString MyDateVal;
+        CString MyZoneVal;
+        m_Time.GetWindowTextA(MyTimeVal);
+        m_Date.GetWindowTextA(MyDateVal);
+        int isel = m_Zone.GetCurSel();
+        m_Zone.GetText(isel, MyZoneVal);
+        //m_Zone.GetWindowTextA(MyZoneVal);
+        char szOffset[64];
+        sprintf(szOffset, "%I64d", recordCurPosOld);
+        m_OffsetPosition.SetWindowTextA(szOffset);
+        fprintf(AnalizeLog,"\n check (%s %d %d %8.1f) %s %s %s  %s",Pulsars[g_cur_pulsar].Name, g_Analize_From, g_Analize_To, Pulsars[g_cur_pulsar].S400mJy, MyDateVal.GetString(),MyTimeVal.GetString(),MyZoneVal.GetString(),szOffset );
+        fclose(AnalizeLog);
+    }
+}
 void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
 {
     // TODO: Add your message handler code here and/or call default
@@ -1944,17 +1966,18 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                                         {
                                             DoFirstdb = FALSE;
                                             g_iCountDB = g_iCountDB_old;
-                                            for (int ik = 0 ; ik < g_iTimeDelta; ik++)
-                                            {
-                                                BUFEDETECT_2db[ik*2] = BUFEDETECT_1db_last[ik*2];
-                                            }
-                                            iCointdB2 = iCointdB1;
+                                            //for (int ik = 0 ; ik < g_iTimeDelta; ik++)
+                                            //{
+                                            //    BUFEDETECT_2db[ik*2] = BUFEDETECT_1db_last[ik*2];
+                                            //}
+                                            //iCointdB2 = iCointdB1;
                                         }
                                         else
                                         {
+                                            __int64  recordCurPosOld = _ftelli64(MyOutPutFIle);
                                             CString MyPos64;
-                                            m_OffsetPosition.GetWindowTextA(MyPos64);
                                             char szText[64];
+                                            m_OffsetPosition.GetWindowTextA(MyPos64);
                                             strcpy(szText, MyPos64.GetString());
                                             __int64  recordCurPos =0;
                                             sscanf(szText, "%I64d",&recordCurPos);
@@ -1978,23 +2001,23 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                                                 for (int ik = 0 ; ik < g_iTimeDelta; ik++)
                                                 {
                                                     Medium1+=BUFEDETECT_1db_last[ik*2];
-                                                    Medium2+=BUFEDETECT_2db_last[ik*2];
+                                                    Medium2+=BUFEDETECT_1db_last[ik*2]+BUFEDETECT_2db_last[ik*2];
                                                     if (MaxDb1 < BUFEDETECT_1db_last[ik*2])
                                                         MaxDb1 = BUFEDETECT_1db_last[ik*2];
-                                                    if (MaxDb2 < BUFEDETECT_2db_last[ik*2])
-                                                        MaxDb2 = BUFEDETECT_2db_last[ik*2];
+                                                    if (MaxDb2 < (BUFEDETECT_1db_last[ik*2]+BUFEDETECT_2db_last[ik*2]))
+                                                        MaxDb2 = (BUFEDETECT_1db_last[ik*2]+BUFEDETECT_2db_last[ik*2]);
 
                                                     if (MinDb1 >= BUFEDETECT_1db_last[ik*2])
                                                         MinDb1 = BUFEDETECT_1db_last[ik*2];
-                                                    if (MinDb2 >= BUFEDETECT_2db_last[ik*2])
-                                                        MinDb2 = BUFEDETECT_2db_last[ik*2];
+                                                    if (MinDb2 >= (BUFEDETECT_1db_last[ik*2]+BUFEDETECT_2db_last[ik*2]))
+                                                        MinDb2 = (BUFEDETECT_1db_last[ik*2]+BUFEDETECT_2db_last[ik*2]);
                                                 }
                                                 Medium1/=(long double)g_iTimeDelta*(long double)iCointdB1;
-                                                Medium2/=(long double)g_iTimeDelta*(long double)iCointdB2;
+                                                Medium2/=(long double)g_iTimeDelta*(long double)(iCointdB1+iCointdB2);
                                                 MaxDb1/=(long double)iCointdB1;
                                                 MinDb1/=(long double)iCointdB1;
-                                                MaxDb2/=(long double)iCointdB2;
-                                                MinDb2/=(long double)iCointdB2;
+                                                MaxDb2/=(long double)(iCointdB1+iCointdB2);
+                                                MinDb2/=(long double)(iCointdB1+iCointdB2);
 
 
 
@@ -2020,29 +2043,29 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                                                         MediumB1+=BUFEDETECT_1db_last[ik*2];
                                                         iMediumB1++;
                                                     }
-                                                    if (BUFEDETECT_2db_last[ik*2] > (Medium2*(long double)iCointdB2))
+                                                    if ((BUFEDETECT_1db_last[ik*2]+BUFEDETECT_2db_last[ik*2]) > (Medium2*(long double)(iCointdB1+iCointdB2)))
                                                     {
-                                                        MediumT2+=BUFEDETECT_2db_last[ik*2];
+                                                        MediumT2+=(BUFEDETECT_1db_last[ik*2]+BUFEDETECT_2db_last[ik*2]);
                                                         iMediumT2++;
                                                     }
                                                     else
                                                     {
-                                                        MediumB2+=BUFEDETECT_2db_last[ik*2];
+                                                        MediumB2+=(BUFEDETECT_1db_last[ik*2]+BUFEDETECT_2db_last[ik*2]);
                                                         iMediumB2++;
                                                     }
                                                 }
                                                 MediumT1/=(long double)iMediumT1*(long double)iCointdB1;
-                                                MediumT2/=(long double)iMediumT2*(long double)iCointdB2;
+                                                MediumT2/=(long double)iMediumT2*(long double)(iCointdB1+iCointdB2);
                                                 MediumB1/=(long double)iMediumB1*(long double)iCointdB1;
-                                                MediumB2/=(long double)iMediumB2*(long double)iCointdB2;
+                                                MediumB2/=(long double)iMediumB2*(long double)(iCointdB1+iCointdB2);
 
                                                 long double Metrix=0.0;
                                                 for (int ik = 0 ; ik < g_iTimeDelta; ik++)
                                                 {
-                                                    Metrix+= (BUFEDETECT_1db_last[ik*2]/(long double)iCointdB1-BUFEDETECT_2db_last[ik*2]/(long double)iCointdB2)*
-                                                             (BUFEDETECT_1db_last[ik*2]/(long double)iCointdB1-BUFEDETECT_2db_last[ik*2]/(long double)iCointdB2);
+                                                    Metrix+= (BUFEDETECT_1db_last[ik*2]-BUFEDETECT_2db_last[ik*2])*
+                                                             (BUFEDETECT_1db_last[ik*2]-BUFEDETECT_2db_last[ik*2]);
                                                 }
-                                                Metrix = sqrt(Metrix)/(g_iTimeDelta);
+                                                Metrix = sqrt(Metrix)/(g_iTimeDelta*(long double)iCointdB1);
                                                 for (int ipu = 0; ipu < nPulsars; ipu++)
                                                 {
                                                     if (((long)g_iTimeDelta) == ((long)(Pulsars[ipu].P0*SAMPLES_PER_SEC)))
@@ -2076,30 +2099,48 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                                             {
                                                 if (CheckAllPulsars)
                                                 {
-                                                    if (++g_cur_pulsar >= nPulsars)
+
+                                                    while(Pulsars[++g_cur_pulsar].Name[5] == '-')
                                                     {
-                                                        CheckAllPulsars = FALSE;
-                                                        flRunningRecording = FALSE;
-                                                        DoAnalize = FALSE;
-                                                        m_AnalizePulsarsOnly.SetWindowTextA("Analize pls only");
-                                                        KillTimer(901);
-                                                        SetTimer(901, 1000,NULL);
-                                                        g_SecondsPerScreen = 1;
-                                                        break;
+                                                        if (g_cur_pulsar >= nPulsars)
+                                                            break;
+                                                    }
+                                                    if (g_cur_pulsar >= nPulsars)
+                                                    {
+                                                        g_cur_pulsar = 0;
+                                                        CleanAllPictures();
+                                                        OutputHeadertext(recordCurPosOld);
+
+                                                        //CheckAllPulsars = FALSE;
+                                                        //flRunningRecording = FALSE;
+                                                        //DoAnalize = FALSE;
+                                                        //m_AnalizePulsarsOnly.SetWindowTextA("Analize pls only");
+                                                        //KillTimer(901);
+                                                        //SetTimer(901, 1000,NULL);
+                                                        //g_SecondsPerScreen = 1;
+                                                        //break;
                                                     }
                                                     else
                                                     {
                                                         CleanAllPictures();
-                                                        g_Analize_From = Pulsars[g_cur_pulsar].P0*SAMPLES_PER_SEC -25.0;
-                                                        g_Analize_To = Pulsars[g_cur_pulsar].P0*SAMPLES_PER_SEC +25.0;
-                                                        g_iTimeDelta = g_Analize_From;
-                                                        CString MyPos64;
-                                                        m_OffsetPosition.GetWindowTextA(MyPos64);
-                                                        char szText[64];
-                                                        strcpy(szText, MyPos64.GetString());
-                                                        __int64  recordCurPos =0;
-                                                        sscanf(szText, "%I64d",&recordCurPos);
-                                                        _fseeki64(MyOutPutFIle, recordCurPos, SEEK_SET);
+                                                        OutputHeadertext(recordCurPos);
+                                                        
+                                                        //g_Analize_From = Pulsars[g_cur_pulsar].P0*SAMPLES_PER_SEC -25.0;
+                                                        //g_Analize_To = Pulsars[g_cur_pulsar].P0*SAMPLES_PER_SEC +25.0;
+                                                        //g_iTimeDelta = g_Analize_From;
+                                                        //CString MyPos64;
+                                                        //m_OffsetPosition.GetWindowTextA(MyPos64);
+                                                        //char szText[64];
+                                                        //strcpy(szText, MyPos64.GetString());
+                                                        //__int64  recordCurPos =0;
+                                                        //sscanf(szText, "%I64d",&recordCurPos);
+                                                        //_fseeki64(MyOutPutFIle, recordCurPos, SEEK_SET);
+                                                        //AnalizeLog = fopen("Analize.txt","a");
+                                                        //if (AnalizeLog != NULL)
+                                                        //{
+                                                        //    fprintf(AnalizeLog,"\n");
+                                                        //    fclose(AnalizeLog);
+                                                        //}
                                                     }
                                                 }
                                                 else
@@ -2964,10 +3005,11 @@ void CpulseMonitorDlg::OnBnClickedButtonAnalizePulsarsOnly()
 
         GetAllPulsarsData();
         g_cur_pulsar = 0;
+        OutputHeadertext(recordCurPos);
 
-        g_Analize_From = Pulsars[g_cur_pulsar].P0*SAMPLES_PER_SEC -50.0;
-        g_Analize_To = Pulsars[g_cur_pulsar].P0*SAMPLES_PER_SEC +50.0;
-        g_iTimeDelta = g_Analize_From;
+        //g_Analize_From = Pulsars[g_cur_pulsar].P0*SAMPLES_PER_SEC -25.0;
+        //g_Analize_To = Pulsars[g_cur_pulsar].P0*SAMPLES_PER_SEC +25.0;
+        //g_iTimeDelta = g_Analize_From;
 
         m_AnalizePulsarsOnly.SetWindowTextA("Analizing pls");
         g_j = 0;

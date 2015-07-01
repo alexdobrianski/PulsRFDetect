@@ -58,6 +58,7 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 public:
+    void OutputHeadertext(__int64 recordCurPosOld);
     void CleanAllPictures(void);
     afx_msg void OnEnChangeEdit1();
     virtual BOOL DestroyWindow();
