@@ -2196,8 +2196,17 @@ void CpulseMonitorDlg::OnTimer(UINT_PTR nIDEvent)
                     while(ReadPulseStruct.Signature != 0x01020304)
                     {
                         __int64  reacordCurPos = _ftelli64(MyOutPutFIle);
-                        if (sizeof(ReadPulseStruct) == fread(&ReadPulseStruct, sizeof(ReadPulseStruct), 1, MyOutPutFIle))
+                        if (sizeof(ReadPulseStruct) != fread(&ReadPulseStruct, sizeof(ReadPulseStruct), 1, MyOutPutFIle))
                         {
+                            if (DoAnalize)
+                            {
+                                flRunningRecording = FALSE;
+                                DoAnalize = FALSE;
+                                m_Analize.SetWindowTextA("Analize");
+                                KillTimer(901);
+                                SetTimer(901, 1000,NULL);
+                                g_SecondsPerScreen = 1;
+                            }
                             break;
                         }
                         if (ReadPulseStruct.Signature == 0x01020304)
